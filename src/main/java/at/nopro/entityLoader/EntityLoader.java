@@ -23,7 +23,6 @@ import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class EntityLoader extends AnvilLoader {
     private final Path entityPath;
@@ -50,20 +49,16 @@ public class EntityLoader extends AnvilLoader {
         int regionX = CoordConversion.chunkToRegion(chunkX);
         int regionZ = CoordConversion.chunkToRegion(chunkZ);
         String fileName = RegionFile.getFileName(regionX, regionZ);
-        try {
-            Path regionPath = this.entityPath.resolve(fileName);
-            if (!Files.exists(regionPath, new LinkOption[0])) {
+        Path regionPath = this.entityPath.resolve(fileName);
+        if (!Files.exists(regionPath)) {
+            return null;
+        } else {
+            try {
+                return new RegionFile(regionPath);
+            } catch (IOException e) {
+                MinecraftServer.getExceptionManager().handleException(e);
                 return null;
-            } else {
-                try {
-                    return new RegionFile(regionPath);
-                } catch (IOException e) {
-                    MinecraftServer.getExceptionManager().handleException(e);
-                    return null;
-                }
             }
-        } finally {
-
         }
     }
 
@@ -97,13 +92,12 @@ public class EntityLoader extends AnvilLoader {
                         ListBinaryTag listBinaryTag = entity.getList("Pos");
 
                         Pos p = new Pos(listBinaryTag.getDouble(0), listBinaryTag.getDouble(1), listBinaryTag.getDouble(2));
-                        if(instance instanceof InstanceContainer container) {
+                        /*if(instance instanceof InstanceContainer container) {
                             for(SharedInstance sharedInstance : container.getSharedInstances()) {
                                 e.setInstance(sharedInstance, p);
                             }
-                        }
+                        }*/
                         e.setInstance(instance, p);
-                        System.out.println(e);
                     }
                 }
 

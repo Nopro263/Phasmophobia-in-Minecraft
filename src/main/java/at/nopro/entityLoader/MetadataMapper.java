@@ -11,10 +11,17 @@ import net.minestom.server.entity.metadata.display.AbstractDisplayMeta;
 import net.minestom.server.entity.metadata.display.BlockDisplayMeta;
 import net.minestom.server.entity.metadata.display.ItemDisplayMeta;
 import net.minestom.server.entity.metadata.display.TextDisplayMeta;
+import net.minestom.server.entity.metadata.other.GlowItemFrameMeta;
+import net.minestom.server.entity.metadata.other.HangingMeta;
+import net.minestom.server.entity.metadata.other.ItemFrameMeta;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.Material;
+import net.minestom.server.utils.Direction;
+import net.minestom.server.utils.Rotation;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -27,11 +34,15 @@ public class MetadataMapper {
     public static Map<String, BiConsumer<CompoundBinaryTag, EntityMeta>> META_CONSUMER = new HashMap<>();
     private static Class<?>[] SIGNATURE = new Class[] {CompoundBinaryTag.class, EntityMeta.class};
 
+    @Retention(RetentionPolicy.RUNTIME)
+    private @interface NBTParser {
+    }
+
     static {
         System.out.println("generating entity map");
         try {
             for(Method m : MetadataMapper.class.getDeclaredMethods()) {
-                if(Arrays.equals(m.getParameterTypes(), SIGNATURE) && !m.getName().startsWith("parse")) {
+                if(Arrays.equals(m.getParameterTypes(), SIGNATURE) && m.isAnnotationPresent(NBTParser.class)) {
                     META_CONSUMER.put("minecraft:" + m.getName(), (ct, em) -> {
                         try {
                             m.invoke(null, ct, em);
@@ -69,7 +80,7 @@ public class MetadataMapper {
         return f;
     }
 
-    private static void parseDisplay(CompoundBinaryTag compoundBinaryTag, EntityMeta entityMeta, boolean positionFix) {
+    private static void parseDisplay(CompoundBinaryTag compoundBinaryTag, EntityMeta entityMeta) {
         AbstractDisplayMeta abstractDisplayMeta = (AbstractDisplayMeta) entityMeta;
         abstractDisplayMeta.setBillboardRenderConstraints(AbstractDisplayMeta.BillboardConstraints.valueOf(compoundBinaryTag.getString("billboard", "fixed").toUpperCase()));
         // Brightness
@@ -84,17 +95,30 @@ public class MetadataMapper {
         abstractDisplayMeta.setRightRotation(listToFloatArray(right_rotation));
         abstractDisplayMeta.setLeftRotation(listToFloatArray(left_rotation));
         abstractDisplayMeta.setScale(new Vec(scale.getFloat(0), scale.getFloat(1), scale.getFloat(2)));
-        if(positionFix) {
-            abstractDisplayMeta.setTranslation(new Pos(translation.getFloat(0), translation.getFloat(1)+0.5, translation.getFloat(2)));
-        } else {
-            abstractDisplayMeta.setTranslation(new Pos(translation.getFloat(0), translation.getFloat(1), translation.getFloat(2)));
-        }
+        abstractDisplayMeta.setTranslation(new Pos(translation.getFloat(0), translation.getFloat(1), translation.getFloat(2)));
 
 
         entityMeta.setHasNoGravity(true);
     }
 
+    private static void parseHanging(CompoundBinaryTag compoundBinaryTag, EntityMeta entityMeta) {
+        HangingMeta hangingMeta = (HangingMeta) entityMeta;
+        Direction direction = switch (compoundBinaryTag.getByte("Facing")) {
+            case 0 -> Direction.DOWN;
+            case 1 -> Direction.UP;
+            case 2 -> Direction.NORTH;
+            case 3 -> Direction.SOUTH;
+            case 4 -> Direction.WEST;
+            case 5 -> Direction.EAST;
+            default -> null;
+        };
+        if(direction == null) {
+            throw new RuntimeException("invalid key");
+        }
+        hangingMeta.setDirection(direction);
+    }
 
+    @NBTParser
     private static void block_display(CompoundBinaryTag compoundBinaryTag, EntityMeta entityMeta) {
         BlockDisplayMeta blockDisplayMeta = (BlockDisplayMeta) entityMeta;
         CompoundBinaryTag blockState = compoundBinaryTag.getCompound("block_state");
@@ -106,9 +130,10 @@ public class MetadataMapper {
         }
         blockDisplayMeta.setBlockState(block);
 
-        parseDisplay(compoundBinaryTag, entityMeta, true);
+        parseDisplay(compoundBinaryTag, entityMeta);
     }
 
+    @NBTParser
     private static void item_display(CompoundBinaryTag compoundBinaryTag, EntityMeta entityMeta) {
         ItemDisplayMeta itemDisplayMeta = (ItemDisplayMeta) entityMeta;
 
@@ -118,12 +143,32 @@ public class MetadataMapper {
         ItemDisplayMeta.DisplayContext displayContext = ItemDisplayMeta.DisplayContext.valueOf(compoundBinaryTag.getString("item_display").toUpperCase());
         itemDisplayMeta.setDisplayContext(displayContext);
 
-        parseDisplay(compoundBinaryTag, entityMeta, false);
+        parseDisplay(compoundBinaryTag, entityMeta);
     }
 
+    @NBTParser
     private static void text_display(CompoundBinaryTag compoundBinaryTag, EntityMeta entityMeta) {
         TextDisplayMeta textDisplayMeta = (TextDisplayMeta) entityMeta;
 
-        parseDisplay(compoundBinaryTag, entityMeta, false);
+        parseDisplay(compoundBinaryTag, entityMeta);
+    }
+
+    @NBTParser
+    private static void glow_item_frame(CompoundBinaryTag compoundBinaryTag, EntityMeta entityMeta) {
+        item_frame(compoundBinaryTag, entityMeta);
+    }
+
+    @NBTParser
+    private static void item_frame(CompoundBinaryTag compoundBinaryTag, EntityMeta entityMeta) {
+        ItemFrameMeta itemFrameMeta = (ItemFrameMeta) entityMeta;
+
+        if(!compoundBinaryTag.getCompound("Item").isEmpty()) {
+            ItemStack itemStack = ItemStack.fromItemNBT(compoundBinaryTag.getCompound("Item"));
+            itemFrameMeta.setItem(itemStack);
+        }
+
+        itemFrameMeta.setRotation(Rotation.values()[compoundBinaryTag.getByte("itemRotation")]);
+
+        parseHanging(compoundBinaryTag, entityMeta);
     }
 }
