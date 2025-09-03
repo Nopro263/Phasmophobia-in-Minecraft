@@ -1,0 +1,31 @@
+# Todo
+
+- Voice chat integration https://github.com/LooFifteen/simple-voice-chat-minestom
+- custom data for blocks in vanilla
+- camera rendering
+- ghost behavior tree
+- fix ghost movement
+- lights in house
+- equipment
+  - camera
+  - flashlight
+  - uv-flashlight
+  - dots-projector
+  - thermometer
+  - book
+  - emf reader
+  - spirit box
+  - optional
+    - crucifix
+    - firelight
+    - headgear
+    - igniter
+    - incense
+    - motion sensor
+    - parabolic microphone
+    - photo camera
+    - salt
+    - sanity medication
+    - sound recorder
+    - sound sensor
+    - tripod

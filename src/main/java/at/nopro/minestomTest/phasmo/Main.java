@@ -52,19 +52,21 @@ public class Main {
         MetadataMapper.init();
         MinecraftServer.getCommandManager().register(new TestCommand());
 
+        //UnsafeHackyThings.set(Block.AIR.registry(), "lightEmission", (byte) 15);
+
         setupInstance();
         setSpawn();
 
         setupDoorEvent();
-        //new EntityLoader("/home/noah/.local/share/multimc/instances/1.21.8_2/.minecraft/saves/6_tanglewood").loadChunk(PHASMO, 0, 0);
-        System.out.println(Block.IRON_TRAPDOOR.registry().occludes());
+
+        /*System.out.println(Block.IRON_TRAPDOOR.registry().occludes());
 
         byte packedFlags = UnsafeHackyThings.get(Block.IRON_TRAPDOOR.registry(), "packedFlags", byte.class);
         packedFlags |= 8;
 
         UnsafeHackyThings.set(Block.IRON_TRAPDOOR.registry(), "packedFlags", packedFlags);
 
-        System.out.println(Block.IRON_TRAPDOOR.registry().occludes());
+        System.out.println(Block.IRON_TRAPDOOR.registry().occludes());*/
 
         minecraftServer.start("127.0.0.1", 25565);
     }
@@ -76,6 +78,9 @@ public class Main {
         instanceContainer.setChunkSupplier(LightingChunk::new);
 
         PHASMO = new ReadonlyInstanceView(UUID.randomUUID(), instanceContainer);
+        PHASMO.setTimeRate(0);
+
+        PHASMO.setTime(17000);
         MinecraftServer.getInstanceManager().registerSharedInstance(PHASMO);
 
         MapMeta mapMeta = new Tanglewood_Drive();

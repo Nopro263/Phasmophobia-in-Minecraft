@@ -12,6 +12,8 @@ import net.minestom.server.entity.metadata.display.BlockDisplayMeta;
 import net.minestom.server.entity.metadata.display.ItemDisplayMeta;
 import net.minestom.server.entity.metadata.display.TextDisplayMeta;
 import net.minestom.server.instance.block.Block;
+import net.minestom.server.item.ItemStack;
+import net.minestom.server.item.Material;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -67,7 +69,7 @@ public class MetadataMapper {
         return f;
     }
 
-    private static void parseDisplay(CompoundBinaryTag compoundBinaryTag, EntityMeta entityMeta) {
+    private static void parseDisplay(CompoundBinaryTag compoundBinaryTag, EntityMeta entityMeta, boolean positionFix) {
         AbstractDisplayMeta abstractDisplayMeta = (AbstractDisplayMeta) entityMeta;
         abstractDisplayMeta.setBillboardRenderConstraints(AbstractDisplayMeta.BillboardConstraints.valueOf(compoundBinaryTag.getString("billboard", "fixed").toUpperCase()));
         // Brightness
@@ -82,7 +84,14 @@ public class MetadataMapper {
         abstractDisplayMeta.setRightRotation(listToFloatArray(right_rotation));
         abstractDisplayMeta.setLeftRotation(listToFloatArray(left_rotation));
         abstractDisplayMeta.setScale(new Vec(scale.getFloat(0), scale.getFloat(1), scale.getFloat(2)));
-        abstractDisplayMeta.setTranslation(new Pos(translation.getFloat(0), translation.getFloat(1)+0.5, translation.getFloat(2)));
+        if(positionFix) {
+            abstractDisplayMeta.setTranslation(new Pos(translation.getFloat(0), translation.getFloat(1)+0.5, translation.getFloat(2)));
+        } else {
+            abstractDisplayMeta.setTranslation(new Pos(translation.getFloat(0), translation.getFloat(1), translation.getFloat(2)));
+        }
+
+
+        entityMeta.setHasNoGravity(true);
     }
 
 
@@ -97,18 +106,24 @@ public class MetadataMapper {
         }
         blockDisplayMeta.setBlockState(block);
 
-        parseDisplay(compoundBinaryTag, entityMeta);
+        parseDisplay(compoundBinaryTag, entityMeta, true);
     }
 
     private static void item_display(CompoundBinaryTag compoundBinaryTag, EntityMeta entityMeta) {
         ItemDisplayMeta itemDisplayMeta = (ItemDisplayMeta) entityMeta;
 
-        parseDisplay(compoundBinaryTag, entityMeta);
+        ItemStack itemStack = ItemStack.fromItemNBT(compoundBinaryTag.getCompound("item"));
+        itemDisplayMeta.setItemStack(itemStack);
+
+        ItemDisplayMeta.DisplayContext displayContext = ItemDisplayMeta.DisplayContext.valueOf(compoundBinaryTag.getString("item_display").toUpperCase());
+        itemDisplayMeta.setDisplayContext(displayContext);
+
+        parseDisplay(compoundBinaryTag, entityMeta, false);
     }
 
     private static void text_display(CompoundBinaryTag compoundBinaryTag, EntityMeta entityMeta) {
         TextDisplayMeta textDisplayMeta = (TextDisplayMeta) entityMeta;
 
-        parseDisplay(compoundBinaryTag, entityMeta);
+        parseDisplay(compoundBinaryTag, entityMeta, false);
     }
 }
