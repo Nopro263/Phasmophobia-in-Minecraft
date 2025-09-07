@@ -1,5 +1,6 @@
 # Todo
 
+- eigener navigator und pathfinder (Navigation meshes + nodes with height)
 - Voice chat integration https://github.com/LooFifteen/simple-voice-chat-minestom
 - custom data for blocks in vanilla
 - camera rendering

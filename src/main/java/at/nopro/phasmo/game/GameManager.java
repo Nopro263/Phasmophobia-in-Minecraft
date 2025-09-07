@@ -1,5 +1,8 @@
 package at.nopro.phasmo.game;
 
+import net.minestom.server.instance.Instance;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -12,5 +15,15 @@ public class GameManager {
 
     public static GameContext createGame(String id, MapContext mapContext) {
         return game.put(id, new GameContext(mapContext));
+    }
+
+    public static @Nullable GameContext getGame(Instance instance){
+        for(GameContext ctx : game.values()) {
+            if(ctx.getInstance().getUuid() == instance.getUuid()) {
+                return ctx;
+            }
+        }
+
+        return null;
     }
 }

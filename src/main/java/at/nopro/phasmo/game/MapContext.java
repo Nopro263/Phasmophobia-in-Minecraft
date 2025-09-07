@@ -6,5 +6,7 @@ import net.minestom.server.coordinate.Point;
 public record MapContext(
         String worldPath,
         long time,
-        Point spawnPoint
+        Point spawnPoint,
+        Point lowerEnd,
+        Point upperEnd
 ) {}
