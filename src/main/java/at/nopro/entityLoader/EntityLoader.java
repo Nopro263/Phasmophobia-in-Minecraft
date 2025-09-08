@@ -74,35 +74,51 @@ public class EntityLoader extends AnvilLoader {
                 for(BinaryTag entityTag : chunkData.getList("Entities", BinaryTagTypes.COMPOUND)) {
                     if(entityTag instanceof CompoundBinaryTag entity) {
 
-                        Entity e;
-
-                        String id = entity.getString("id");
-                        int[] rawUUID = entity.getIntArray("UUID");
-                        long msb = ((long)rawUUID[0] << 32) | rawUUID[1];
-                        long lsb = ((long)rawUUID[2] << 32) | rawUUID[3];
-
-                        e = new Entity(MetadataMapper.MAP.get(id), new UUID(msb, lsb));
-
-                        EntityMeta meta = e.getEntityMeta();
-
-                        meta.setNotifyAboutChanges(false);
-                        MetadataMapper.META_CONSUMER.get(id).accept(entity, meta);
-                        meta.setNotifyAboutChanges(true);
+                        Entity e = loadEntity(entity);
 
                         ListBinaryTag listBinaryTag = entity.getList("Pos");
 
                         Pos p = new Pos(listBinaryTag.getDouble(0), listBinaryTag.getDouble(1), listBinaryTag.getDouble(2));
-                        /*if(instance instanceof InstanceContainer container) {
-                            for(SharedInstance sharedInstance : container.getSharedInstances()) {
-                                e.setInstance(sharedInstance, p);
-                            }
-                        }*/
+
                         e.setInstance(instance, p);
+
+                        ListBinaryTag passengerTag = entity.getList("Passengers");
+                        for (int i = 0; i < passengerTag.size(); i++) {
+                            Entity passenger = loadEntity(passengerTag.getCompound(i));
+                            passenger.setInstance(instance, p);
+
+                            MinecraftServer.getSchedulerManager().submitTask(() -> {
+                                if(passenger.getChunk() == null) {
+                                    return TaskSchedule.nextTick();
+                                }
+                                e.addPassenger(passenger);
+                                return TaskSchedule.stop();
+                            });
+                        }
                     }
                 }
 
             }
         }
         return false;
+    }
+
+    private Entity loadEntity(CompoundBinaryTag entity) {
+        Entity e;
+
+        String id = entity.getString("id");
+        int[] rawUUID = entity.getIntArray("UUID");
+        long msb = ((long)rawUUID[0] << 32) | rawUUID[1];
+        long lsb = ((long)rawUUID[2] << 32) | rawUUID[3];
+
+        e = new Entity(MetadataMapper.MAP.get(id), new UUID(msb, lsb));
+
+        EntityMeta meta = e.getEntityMeta();
+
+        meta.setNotifyAboutChanges(false);
+        MetadataMapper.META_CONSUMER.get(id).accept(entity, meta);
+        meta.setNotifyAboutChanges(true);
+
+        return e;
     }
 }

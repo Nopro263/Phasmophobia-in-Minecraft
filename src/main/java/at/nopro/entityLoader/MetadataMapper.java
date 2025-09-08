@@ -80,6 +80,10 @@ public class MetadataMapper {
         return f;
     }
 
+    private static void parseEntity(CompoundBinaryTag compoundBinaryTag, EntityMeta entityMeta) {
+
+    }
+
     private static void parseDisplay(CompoundBinaryTag compoundBinaryTag, EntityMeta entityMeta) {
         AbstractDisplayMeta abstractDisplayMeta = (AbstractDisplayMeta) entityMeta;
         abstractDisplayMeta.setBillboardRenderConstraints(AbstractDisplayMeta.BillboardConstraints.valueOf(compoundBinaryTag.getString("billboard", "fixed").toUpperCase()));
@@ -99,6 +103,8 @@ public class MetadataMapper {
 
 
         entityMeta.setHasNoGravity(true);
+
+        parseEntity(compoundBinaryTag, entityMeta);
     }
 
     private static void parseHanging(CompoundBinaryTag compoundBinaryTag, EntityMeta entityMeta) {
@@ -116,6 +122,8 @@ public class MetadataMapper {
             throw new RuntimeException("invalid key");
         }
         hangingMeta.setDirection(direction);
+
+        parseEntity(compoundBinaryTag, entityMeta);
     }
 
     @NBTParser
