@@ -80,7 +80,11 @@ public class PhasmoNodeGenerator implements NodeGenerator {
 
     @Override
     public boolean pointInvalid(Block.Getter getter, Point point, BoundingBox boundingBox) {
-        return NodeGenerator.super.pointInvalid(getter, point, boundingBox);
+        return pathCache.isInvalid(
+                (short) point.blockX(),
+                (short) point.blockY(),
+                (short) point.blockZ()
+        );
     }
 
     @Override

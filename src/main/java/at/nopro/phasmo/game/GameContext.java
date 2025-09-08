@@ -1,9 +1,8 @@
 package at.nopro.phasmo.game;
 
 import at.nopro.entityLoader.EntityLoader;
-import at.nopro.minestomTest.phasmo.MapMeta;
 import at.nopro.phasmo.entity.ai.PathCache;
-import at.nopro.phasmo.entity.ai.PhasmoEntity;
+import at.nopro.phasmo.entity.PhasmoEntity;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.coordinate.CoordConversion;
 import net.minestom.server.coordinate.Pos;
@@ -31,11 +30,11 @@ public class GameContext {
 
         instance.setTime(mapContext.time());
 
-        int cx1 = CoordConversion.globalToChunk(mapContext.lowerEnd().x());
-        int cz1 = CoordConversion.globalToChunk(mapContext.lowerEnd().z());
+        int cx1 = CoordConversion.globalToChunk(mapContext.lowerEnd().x() - 1);
+        int cz1 = CoordConversion.globalToChunk(mapContext.lowerEnd().z() - 1);
 
-        int cx2 = CoordConversion.globalToChunk(mapContext.upperEnd().x());
-        int cz2 = CoordConversion.globalToChunk(mapContext.upperEnd().z());
+        int cx2 = CoordConversion.globalToChunk(mapContext.upperEnd().x() + 1);
+        int cz2 = CoordConversion.globalToChunk(mapContext.upperEnd().z() + 1);
 
         long start = System.currentTimeMillis();
 

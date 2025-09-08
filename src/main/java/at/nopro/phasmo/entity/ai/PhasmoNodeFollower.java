@@ -1,5 +1,6 @@
 package at.nopro.phasmo.entity.ai;
 
+import at.nopro.phasmo.entity.PhasmoEntity;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.entity.pathfinding.followers.NodeFollower;
 import org.jetbrains.annotations.Nullable;
