@@ -26,6 +26,11 @@
                 <enabled>true</enabled>
             </snapshots>
         </repository>
+        <repository>
+            <id>hypera-snapshots</id>
+            <name>Hypera Development</name>
+            <url>https://repo.hypera.dev/snapshots</url>
+        </repository>
     </repositories>
 
     <dependencies>
@@ -43,6 +48,11 @@
             <groupId>de.articdive</groupId>
             <artifactId>jnoise-pipeline</artifactId>
             <version>4.1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>dev.lu15</groupId>
+            <artifactId>simple-voice-chat-minestom</artifactId>
+            <version>0.2.0-SNAPSHOT</version>
         </dependency>
     </dependencies>
 

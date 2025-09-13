@@ -3,6 +3,7 @@ package at.nopro.phasmo.entity;
 import at.nopro.phasmo.entity.ai.InvalidPositionException;
 import at.nopro.phasmo.entity.ai.PhasmoNodeFollower;
 import at.nopro.phasmo.entity.ai.PhasmoNodeGenerator;
+import at.nopro.phasmo.event.GhostEvent;
 import at.nopro.phasmo.game.GameContext;
 import net.minestom.server.collision.BoundingBox;
 import net.minestom.server.coordinate.Point;
@@ -12,7 +13,7 @@ import net.minestom.server.entity.EntityType;
 import java.util.concurrent.CompletableFuture;
 
 public class PhasmoEntity extends EntityCreature {
-    private final GameContext gameContext;
+    protected final GameContext gameContext;
     private final PhasmoNodeGenerator nodeGenerator;
     private final PhasmoNodeFollower nodeFollower;
 
@@ -26,6 +27,12 @@ public class PhasmoEntity extends EntityCreature {
 
         this.getNavigator().setNodeGenerator(() -> nodeGenerator);
         this.getNavigator().setNodeFollower(() -> nodeFollower);
+    }
+
+    @Override
+    public void update(long time) {
+        gameContext.getEventNode().call(new GhostEvent(gameContext, 5, position));
+        super.update(time);
     }
 
     public CompletableFuture<PhasmoEntity> goTo(Point point) throws InvalidPositionException {
