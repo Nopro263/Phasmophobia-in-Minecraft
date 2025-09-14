@@ -31,7 +31,7 @@ public class PhasmoEntity extends EntityCreature {
 
     @Override
     public void update(long time) {
-        gameContext.getEventNode().call(new GhostEvent(gameContext, 5, position));
+        gameContext.getEventNode().call(new GhostEvent(gameContext, GhostEvent.ActionType.INTERACT, position));
         super.update(time);
     }
 

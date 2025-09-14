@@ -3,6 +3,7 @@ package at.nopro.phasmo.game;
 import at.nopro.entityLoader.EntityLoader;
 import at.nopro.phasmo.content.equipment.Equipment;
 import at.nopro.phasmo.content.equipment.EquipmentManager;
+import at.nopro.phasmo.content.ghost.TestGhost;
 import at.nopro.phasmo.entity.ai.PathCache;
 import at.nopro.phasmo.entity.PhasmoEntity;
 import at.nopro.phasmo.event.GhostEvent;
@@ -10,21 +11,27 @@ import at.nopro.phasmo.event.PhasmoEvent;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.coordinate.CoordConversion;
 import net.minestom.server.coordinate.Pos;
-import net.minestom.server.entity.EntityType;
 import net.minestom.server.entity.Player;
 import net.minestom.server.event.Event;
+import net.minestom.server.event.EventBinding;
 import net.minestom.server.event.EventFilter;
 import net.minestom.server.event.EventNode;
+import net.minestom.server.event.player.PlayerSwapItemEvent;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.InstanceContainer;
 import net.minestom.server.instance.LightingChunk;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collection;
+import java.util.List;
+import java.util.function.Consumer;
+
 public class GameContext {
     private final MapContext mapContext;
     private InstanceContainer instance;
     private PathCache pathCache;
-    private EventNode<Event> eventNode;
+    private EventNode<@NotNull Event> eventNode;
+    private EventNode<@NotNull Event> monitoringEventNode;
     public PhasmoEntity entity;
 
     public GameContext(MapContext mapContext) {
@@ -70,23 +77,34 @@ public class GameContext {
 
         System.out.println("Generated pathfinding map in " + (System.currentTimeMillis() - start) + "ms");
 
-        this.entity = new PhasmoEntity(EntityType.SKELETON, this);
+        this.eventNode = MinecraftServer.getGlobalEventHandler().addChild(EventNode.type("phasmo", EventFilter.ALL));
+        this.monitoringEventNode = EventNode.all("phasmo-monitor");
+        this.monitoringEventNode.setPriority(99);
+        this.eventNode.addChild(this.monitoringEventNode);
+
+        listenTo(GhostEvent.class);
+
+        this.entity = new TestGhost(this);
         this.entity.setInstance(instance, new Pos(-8, -42, 3));
 
-        this.eventNode = MinecraftServer.getGlobalEventHandler().addChild(EventNode.type("phasmo", EventFilter.ALL));
+        this.monitoringEventNode.addListener(PlayerSwapItemEvent.class, (event) -> {
 
-        this.eventNode.addListener(GhostEvent.class, (event) -> {
+        });
+    }
+
+    private void listenTo(Class<? extends Event> clazz) {
+        this.monitoringEventNode.addListener(clazz, (event) -> {
             for(Player player : instance.getPlayers()) {
-                 Equipment equipment = EquipmentManager.getEquipment(player.getItemInMainHand());
-                 if(equipment == null) {
-                     continue;
-                 }
+                Equipment equipment = EquipmentManager.getEquipment(player.getItemInMainHand());
+                if(equipment == null) {
+                    continue;
+                }
 
-                 equipment.handle(event, player, (itemStack) -> {
-                     if(itemStack != null) {
-                         player.setItemInMainHand(itemStack);
-                     }
-                 });
+                equipment.handle(event, player, (itemStack) -> {
+                    if(itemStack != null) {
+                        player.setItemInMainHand(itemStack);
+                    }
+                });
             }
         });
     }
