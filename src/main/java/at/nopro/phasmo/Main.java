@@ -9,6 +9,7 @@ import at.nopro.phasmo.entity.PhasmoEntity;
 import at.nopro.phasmo.entity.ai.InvalidPositionException;
 import at.nopro.phasmo.game.GameContext;
 import at.nopro.phasmo.game.GameManager;
+import at.nopro.phasmo.game.ItemTracker;
 import dev.lu15.voicechat.VoiceChat;
 import dev.lu15.voicechat.api.SoundSelector;
 import dev.lu15.voicechat.event.PlayerMicrophoneEvent;
@@ -47,6 +48,7 @@ public class Main {
         MinecraftServer.getCommandManager().register(new Test3());
 
         Listeners.init();
+        ItemTracker.init();
 
         EquipmentManager.register(new EMF_Reader());
         EquipmentManager.register(new Ghost_Book());

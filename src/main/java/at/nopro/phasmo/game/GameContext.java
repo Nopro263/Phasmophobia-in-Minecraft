@@ -22,6 +22,7 @@ import net.minestom.server.instance.InstanceContainer;
 import net.minestom.server.instance.LightingChunk;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
@@ -33,9 +34,11 @@ public class GameContext {
     private EventNode<@NotNull Event> eventNode;
     private EventNode<@NotNull Event> monitoringEventNode;
     public PhasmoEntity entity;
+    private List<ItemReference> equipments;
 
     public GameContext(MapContext mapContext) {
         this.mapContext = mapContext;
+        this.equipments = new ArrayList<>();
         this.load();
     }
 
@@ -100,11 +103,8 @@ public class GameContext {
                     continue;
                 }
 
-                equipment.handle(event, player, (itemStack) -> {
-                    if(itemStack != null) {
-                        player.setItemInMainHand(itemStack);
-                    }
-                });
+                ItemReference ref = ItemTracker.track(player, player.getHeldSlot());
+                equipment.handle(event, player, ref);
             }
         });
     }
