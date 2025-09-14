@@ -2,6 +2,7 @@ package at.nopro.phasmo.game;
 
 import net.minestom.server.entity.Entity;
 import net.minestom.server.entity.Player;
+import net.minestom.server.entity.metadata.display.ItemDisplayMeta;
 import net.minestom.server.entity.metadata.item.ItemEntityMeta;
 import net.minestom.server.item.ItemStack;
 import org.jetbrains.annotations.ApiStatus;
@@ -20,20 +21,30 @@ public class ItemReference {
 
     @ApiStatus.Internal
     public void setInPlayerInventory(Player player, int slot) {
-        getter = () -> player.getInventory().getItemStack(slot);
-
-        setter = itemStack -> player.getInventory().setItemStack(slot, itemStack);
+        if(slot == -1) {
+            getter = () -> player.getInventory().getCursorItem();
+            setter = itemStack -> player.getInventory().setCursorItem(itemStack);
+        } else {
+            getter = () -> player.getInventory().getItemStack(slot);
+            setter = itemStack -> player.getInventory().setItemStack(slot, itemStack);
+        }
     }
 
     @ApiStatus.Internal
     public void setAsEntity(Entity entity) {
-        if(!(entity.getEntityMeta() instanceof ItemEntityMeta itemEntityMeta )) {
-            throw new RuntimeException("Not an Item-Entity");
+        if(entity.getEntityMeta() instanceof ItemEntityMeta itemEntityMeta) {
+            getter = itemEntityMeta::getItem;
+            setter = itemEntityMeta::setItem;
+            return;
         }
 
-        getter = itemEntityMeta::getItem;
+        if(entity.getEntityMeta() instanceof ItemDisplayMeta itemDisplayMeta) {
+            getter = itemDisplayMeta::getItemStack;
+            setter = itemDisplayMeta::setItemStack;
+            return;
+        }
 
-        setter = itemEntityMeta::setItem;
+        throw new RuntimeException("Not an Item-Entity");
     }
 
     @ApiStatus.Internal

@@ -7,13 +7,18 @@ import net.minestom.server.entity.Entity;
 import net.minestom.server.entity.Player;
 import net.minestom.server.event.Event;
 import net.minestom.server.event.EventNode;
+import net.minestom.server.event.inventory.InventoryClickEvent;
+import net.minestom.server.event.inventory.InventoryItemChangeEvent;
+import net.minestom.server.event.inventory.InventoryPreClickEvent;
 import net.minestom.server.event.item.ItemDropEvent;
+import net.minestom.server.event.player.PlayerPickEntityEvent;
 import net.minestom.server.event.player.PlayerSwapItemEvent;
+import net.minestom.server.inventory.click.Click;
+import net.minestom.server.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 public class ItemTracker {
     private static Map<Pair<Player, Integer>, ItemReference> playerSlotMap = new HashMap<>();
@@ -26,6 +31,36 @@ public class ItemTracker {
 
         node.addListener(ItemDropEvent.class, ItemTracker::handleDrop);
         node.addListener(PlayerSwapItemEvent.class, ItemTracker::handleSwap);
+        node.addListener(PlayerPickEntityEvent.class, ItemTracker::handlePickUp);
+        node.addListener(InventoryPreClickEvent.class, ItemTracker::handleInventoryClick);
+        node.addListener(InventoryClickEvent.class, ItemTracker::handleInventoryClick);
+        node.addListener(InventoryItemChangeEvent.class, ItemTracker::handleInventoryItemChange);
+    }
+
+    private static void handlePickUp(PlayerPickEntityEvent event) {
+        Entity entity = event.getTarget();
+        if(entity == null) return;
+
+        Entity vehicle = entity.getVehicle();
+        if(vehicle != null) {
+            if (vehicle instanceof ItemEntity itemEntity) {
+                ItemStack itemStack = itemEntity.getItem();
+                final Player player = event.getPlayer();
+                int slot = player.getHeldSlot();
+
+                if(!player.getInventory().getItemStack(slot).isAir()) return;
+
+                if(itemMap.containsKey(itemEntity)) {
+                    ItemReference entityTracker = itemMap.remove(itemEntity);
+                    entityTracker.setInPlayerInventory(player, slot);
+
+                    Pair<Player, Integer> mainHandPair = new Pair<>(player, slot);
+                    playerSlotMap.put(mainHandPair, entityTracker);
+                }
+
+                player.getInventory().setItemStack(slot, itemStack);
+            }
+        }
     }
 
     private static void handleDrop(ItemDropEvent event) {
@@ -39,9 +74,10 @@ public class ItemTracker {
         if(mainHandTracker != null) {
             mainHandTracker.setAsEntity(itemEntity);
             playerSlotMap.remove(mainHandPair);
+            itemMap.put(itemEntity, mainHandTracker);
         }
 
-        itemEntity.setInstance(event.getInstance(), player.getPosition());
+        itemEntity.setInstance(event.getInstance(), player.getPosition().withPitch(0));
     }
 
     private static void handleSwap(PlayerSwapItemEvent event) {
@@ -51,14 +87,50 @@ public class ItemTracker {
 
         int mainHandSlot = player.getHeldSlot();
         int offHandSlot = 45;
-        Pair<Player, Integer> mainHandPair = new Pair<>(player, mainHandSlot);
-        Pair<Player, Integer> offHandPair = new Pair<>(player, offHandSlot);
+        swapInInventory(player,mainHandSlot, offHandSlot);
+    }
+
+    private static void handleInventoryClick(InventoryPreClickEvent event) {
+        if(event.getClick() instanceof Click.Left || event.getClick() instanceof Click.Right) {
+
+        } else {
+            event.setCancelled(true);
+            //TODO support other clicks as well
+        }
+    }
+
+    private static void handleInventoryClick(InventoryClickEvent event) {
+        int slotFrom = 99;
+        int slotTo = 99;
+
+        if(event.getCursorItem().isAir() && !event.getClickedItem().isAir()) {
+            System.out.println("PickUp");
+            slotTo = -1;
+            slotFrom = event.getSlot();
+        }
+
+        if(!event.getCursorItem().isAir() && event.getClickedItem().isAir()) {
+            System.out.println("Drop");
+            slotTo = event.getSlot();
+            slotFrom = -1;
+        }
+
+        swapInInventory(event.getPlayer(), slotFrom, slotTo);
+    }
+
+    private static void handleInventoryItemChange(InventoryItemChangeEvent event) {
+        System.out.println(event.getSlot());
+    }
+
+    private static void swapInInventory(Player player, int slot1, int slot2) {
+        Pair<Player, Integer> mainHandPair = new Pair<>(player, slot1);
+        Pair<Player, Integer> offHandPair = new Pair<>(player, slot2);
 
         ItemReference mainHandTracker = playerSlotMap.get(mainHandPair);
         ItemReference offHandTracker = playerSlotMap.get(offHandPair);
 
         if(mainHandTracker != null){
-            mainHandTracker.setInPlayerInventory(player, offHandSlot);
+            mainHandTracker.setInPlayerInventory(player, slot2);
             if(offHandTracker == null) {
                 playerSlotMap.remove(mainHandPair);
             }
@@ -66,7 +138,7 @@ public class ItemTracker {
         }
 
         if(offHandTracker != null){
-            offHandTracker.setInPlayerInventory(player, mainHandSlot);
+            offHandTracker.setInPlayerInventory(player, slot1);
             if(mainHandTracker == null) {
                 playerSlotMap.remove(offHandPair);
             }

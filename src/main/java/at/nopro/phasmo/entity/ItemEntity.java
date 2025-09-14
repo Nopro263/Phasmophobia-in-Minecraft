@@ -7,7 +7,7 @@ import net.minestom.server.coordinate.Pos;
 import net.minestom.server.coordinate.Vec;
 import net.minestom.server.entity.Entity;
 import net.minestom.server.entity.EntityType;
-import net.minestom.server.entity.metadata.item.ItemEntityMeta;
+import net.minestom.server.entity.metadata.display.ItemDisplayMeta;
 import net.minestom.server.entity.metadata.other.InteractionMeta;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.item.ItemStack;
@@ -19,31 +19,38 @@ public class ItemEntity extends Entity {
     private Entity interactionEntity;
 
     public ItemEntity(ItemStack itemStack) {
-        this(itemStack, -1,-1);
+        super(EntityType.ITEM_DISPLAY);
+
+        this.interactionEntity = new Entity(EntityType.INTERACTION);
+
+        ItemModelProvider.ItemModel itemModel = ItemModelProvider.getItemModel(itemStack.get(DataComponents.ITEM_MODEL));
+        BoundingBox bb = itemModel.boundingBox();
+        assert bb != null;
+        assert bb.width() == bb.depth();
+
+        if(this.getEntityMeta() instanceof ItemDisplayMeta itemDisplayMeta) {
+            itemDisplayMeta.setItemStack(itemStack);
+            itemDisplayMeta.setDisplayContext(ItemDisplayMeta.DisplayContext.GROUND);
+
+            itemDisplayMeta.setTranslation(itemModel.translation());
+            itemDisplayMeta.setLeftRotation(itemModel.leftRotation());
+            itemDisplayMeta.setRightRotation(itemModel.rightRotation());
+            itemDisplayMeta.setScale(itemModel.scale());
+
+            itemDisplayMeta.setHasNoGravity(true);
+
+            setBoundingBox(bb);
+        }
+
+        if(this.interactionEntity.getEntityMeta() instanceof InteractionMeta interactionMeta) {
+            interactionMeta.setWidth((float) bb.width());
+            interactionMeta.setHeight((float) bb.height());
+            interactionMeta.setResponse(true);
+        }
     }
 
-    public ItemEntity(ItemStack itemStack, float width, float height) {
-        super(EntityType.ITEM);
-
-        if (width == -1 || height == -1) {
-            BoundingBox bb = ItemModelProvider.getItemBoundingBox(itemStack.get(DataComponents.ITEM_MODEL));
-            assert bb != null;
-            assert bb.width() == bb.depth();
-
-            if(width == -1) width = (float) bb.width();
-            if(height == -1) height = (float) bb.height();
-        }
-
-        if(this.getEntityMeta() instanceof ItemEntityMeta itemEntityMeta) {
-            itemEntityMeta.setItem(itemStack);
-        }
-
-        interactionEntity = new Entity(EntityType.INTERACTION);
-        if(interactionEntity.getEntityMeta() instanceof InteractionMeta interactionMeta) {
-            interactionMeta.setResponse(true);
-            interactionMeta.setHeight(height);
-            interactionMeta.setWidth(width);
-        }
+    public ItemStack getItem() {
+        return ((ItemDisplayMeta) this.getEntityMeta()).getItemStack();
     }
 
     @Override
