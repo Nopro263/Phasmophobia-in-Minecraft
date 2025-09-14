@@ -4,6 +4,7 @@ import at.nopro.entityLoader.EntityLoader;
 import at.nopro.phasmo.content.equipment.Equipment;
 import at.nopro.phasmo.content.equipment.EquipmentManager;
 import at.nopro.phasmo.content.ghost.TestGhost;
+import at.nopro.phasmo.entity.ItemEntity;
 import at.nopro.phasmo.entity.ai.PathCache;
 import at.nopro.phasmo.entity.PhasmoEntity;
 import at.nopro.phasmo.event.GhostEvent;
@@ -11,6 +12,7 @@ import at.nopro.phasmo.event.PhasmoEvent;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.coordinate.CoordConversion;
 import net.minestom.server.coordinate.Pos;
+import net.minestom.server.entity.Entity;
 import net.minestom.server.entity.Player;
 import net.minestom.server.event.Event;
 import net.minestom.server.event.EventBinding;
@@ -98,13 +100,26 @@ public class GameContext {
     private void listenTo(Class<? extends Event> clazz) {
         this.monitoringEventNode.addListener(clazz, (event) -> {
             for(Player player : instance.getPlayers()) {
-                Equipment equipment = EquipmentManager.getEquipment(player.getItemInMainHand());
+                ItemReference ref = ItemTracker.track(player, player.getHeldSlot());
+
+                Equipment equipment = EquipmentManager.getEquipment(ref.get());
                 if(equipment == null) {
                     continue;
                 }
-
-                ItemReference ref = ItemTracker.track(player, player.getHeldSlot());
                 equipment.handle(event, player, ref);
+            }
+            for(Entity entity : instance.getEntities()) {
+                if(!(entity instanceof ItemEntity itemEntity)) {
+                    continue;
+                }
+
+                ItemReference ref = ItemTracker.track(itemEntity);
+
+                Equipment equipment = EquipmentManager.getEquipment(ref.get());
+                if(equipment == null) {
+                    continue;
+                }
+                equipment.handle(event, itemEntity, ref);
             }
         });
     }

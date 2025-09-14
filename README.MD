@@ -1,9 +1,9 @@
 # Todo
 
-- offhand and drop handling (reset state)
-- per player schedule with id (same id overwrites)
+- [x] offhand and drop handling (reset state)
+- [x] per player schedule with id (same id overwrites)
 - eigener navigator und pathfinder (Navigation meshes + nodes with height)
-- Voice chat integration https://github.com/LooFifteen/simple-voice-chat-minestom
+- [x] Voice chat integration https://github.com/LooFifteen/simple-voice-chat-minestom
 - custom data for blocks in vanilla
 - camera rendering
 - ghost behavior tree
@@ -17,7 +17,7 @@
   - thermometer
   - book
   - emf reader
-  - spirit box
+  - spirit box (use voice chat and text chat)
   - optional
     - crucifix
     - firelight

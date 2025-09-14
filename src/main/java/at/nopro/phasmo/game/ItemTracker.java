@@ -59,6 +59,9 @@ public class ItemTracker {
                 }
 
                 player.getInventory().setItemStack(slot, itemStack);
+
+                vehicle.remove();
+                entity.remove();
             }
         }
     }
@@ -154,6 +157,16 @@ public class ItemTracker {
         ItemReference ref = new ItemReference();
         ref.setInPlayerInventory(player, slot);
         playerSlotMap.put(pair, ref);
+        return ref;
+    }
+
+    public static ItemReference track(ItemEntity itemEntity) {
+        if(itemMap.containsKey(itemEntity)) {
+            return itemMap.get(itemEntity);
+        }
+        ItemReference ref = new ItemReference();
+        ref.setAsEntity(itemEntity);
+        itemMap.put(itemEntity, ref);
         return ref;
     }
 
