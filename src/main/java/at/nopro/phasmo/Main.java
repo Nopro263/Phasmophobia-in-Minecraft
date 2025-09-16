@@ -28,6 +28,7 @@ import net.minestom.server.coordinate.Vec;
 import net.minestom.server.entity.Player;
 import net.minestom.server.entity.pathfinding.PNode;
 import net.minestom.server.event.player.PlayerLoadedEvent;
+import net.minestom.server.extras.MojangAuth;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.network.packet.server.play.BlockChangePacket;
 import net.minestom.server.network.packet.server.play.ParticlePacket;
@@ -36,12 +37,16 @@ import net.minestom.server.timer.TaskSchedule;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 
 public class Main {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
+        VirtualClient virtualClient = new VirtualClient(new File("/home/noah/Documents/privat/hmcTest"));
         MinecraftServer minecraftServer = MinecraftServer.init();
+        MojangAuth.init();
 
         MinecraftServer.getCommandManager().register(new Test());
         MinecraftServer.getCommandManager().register(new Test2());

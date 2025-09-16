@@ -107,13 +107,11 @@ public class ItemTracker {
         int slotTo = 99;
 
         if(event.getCursorItem().isAir() && !event.getClickedItem().isAir()) {
-            System.out.println("PickUp");
             slotTo = -1;
             slotFrom = event.getSlot();
         }
 
         if(!event.getCursorItem().isAir() && event.getClickedItem().isAir()) {
-            System.out.println("Drop");
             slotTo = event.getSlot();
             slotFrom = -1;
         }
@@ -122,7 +120,7 @@ public class ItemTracker {
     }
 
     private static void handleInventoryItemChange(InventoryItemChangeEvent event) {
-        System.out.println(event.getSlot());
+
     }
 
     private static void swapInInventory(Player player, int slot1, int slot2) {

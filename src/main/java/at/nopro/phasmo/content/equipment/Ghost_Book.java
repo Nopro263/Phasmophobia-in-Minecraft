@@ -17,9 +17,7 @@ public class Ghost_Book implements Equipment {
     @Override
     public void handle(Event event, Entity entity, ItemReference r) {
         if(event instanceof EntityAttackEvent attackEvent) {
-            System.out.println(1);
             if(entity.equals(attackEvent.getTarget())) {
-                System.out.println("HIT");
                 if(Objects.equals(r.get().get(DataComponents.ITEM_MODEL), "phasmo:book_closed")) {
                     r.set(ItemProvider.getOpenBook());
                 } else {

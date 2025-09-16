@@ -42,16 +42,18 @@ public class Listeners {
 
             context.getDisplayManager().sendAllCached(event.getPlayer());
 
-            PlayerInfoRemovePacket pirp = new PlayerInfoRemovePacket(context.getCamPlayer().getUuid());
+            if(context.getCamPlayer() != null) {
+                PlayerInfoRemovePacket pirp = new PlayerInfoRemovePacket(context.getCamPlayer().getUuid());
 
-            if(context.getCamPlayer() == event.getPlayer()) {
-                context.getCamPlayer().setGameMode(GameMode.SPECTATOR);
-                context.getCamPlayer().addEffect(new Potion(PotionEffect.NIGHT_VISION, 1, -1));
-                for(Player player : event.getInstance().getPlayers()) {
-                    player.sendPacket(pirp);
+                if (context.getCamPlayer() == event.getPlayer()) {
+                    context.getCamPlayer().setGameMode(GameMode.SPECTATOR);
+                    context.getCamPlayer().addEffect(new Potion(PotionEffect.NIGHT_VISION, 1, -1));
+                    for (Player player : event.getInstance().getPlayers()) {
+                        player.sendPacket(pirp);
+                    }
+                } else {
+                    event.getPlayer().sendPacket(pirp);
                 }
-            } else {
-                event.getPlayer().sendPacket(pirp);
             }
         });
 
