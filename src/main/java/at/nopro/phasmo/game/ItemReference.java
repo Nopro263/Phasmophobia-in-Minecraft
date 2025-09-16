@@ -1,5 +1,6 @@
 package at.nopro.phasmo.game;
 
+import at.nopro.phasmo.entity.ItemEntity;
 import net.minestom.server.entity.Entity;
 import net.minestom.server.entity.Player;
 import net.minestom.server.entity.metadata.display.ItemDisplayMeta;
@@ -32,15 +33,9 @@ public class ItemReference {
 
     @ApiStatus.Internal
     public void setAsEntity(Entity entity) {
-        if(entity.getEntityMeta() instanceof ItemEntityMeta itemEntityMeta) {
-            getter = itemEntityMeta::getItem;
-            setter = itemEntityMeta::setItem;
-            return;
-        }
-
-        if(entity.getEntityMeta() instanceof ItemDisplayMeta itemDisplayMeta) {
-            getter = itemDisplayMeta::getItemStack;
-            setter = itemDisplayMeta::setItemStack;
+        if(entity instanceof ItemEntity itemEntity) {
+            getter = itemEntity::getItem;
+            setter = itemEntity::setItem;
             return;
         }
 

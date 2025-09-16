@@ -13,11 +13,13 @@ import net.minestom.server.MinecraftServer;
 import net.minestom.server.coordinate.CoordConversion;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.Entity;
+import net.minestom.server.entity.GameMode;
 import net.minestom.server.entity.Player;
 import net.minestom.server.event.Event;
 import net.minestom.server.event.EventBinding;
 import net.minestom.server.event.EventFilter;
 import net.minestom.server.event.EventNode;
+import net.minestom.server.event.entity.EntityAttackEvent;
 import net.minestom.server.event.player.PlayerSwapItemEvent;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.InstanceContainer;
@@ -36,11 +38,10 @@ public class GameContext {
     private EventNode<@NotNull Event> eventNode;
     private EventNode<@NotNull Event> monitoringEventNode;
     public PhasmoEntity entity;
-    private List<ItemReference> equipments;
+    private Player camPlayer;
 
     public GameContext(MapContext mapContext) {
         this.mapContext = mapContext;
-        this.equipments = new ArrayList<>();
         this.load();
     }
 
@@ -88,6 +89,7 @@ public class GameContext {
         this.eventNode.addChild(this.monitoringEventNode);
 
         listenTo(GhostEvent.class);
+        listenTo(EntityAttackEvent.class);
 
         this.entity = new TestGhost(this);
         this.entity.setInstance(instance, new Pos(-8, -42, 3));
@@ -122,6 +124,15 @@ public class GameContext {
                 equipment.handle(event, itemEntity, ref);
             }
         });
+    }
+
+    public Player getCamPlayer() {
+        return camPlayer;
+    }
+
+    public void setCamPlayer(Player camPlayer) {
+        this.camPlayer = camPlayer;
+        camPlayer.setGameMode(GameMode.SPECTATOR);
     }
 
     public MapContext getMapContext() {

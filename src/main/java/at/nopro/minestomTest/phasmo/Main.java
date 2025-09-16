@@ -37,6 +37,9 @@ import net.minestom.server.utils.Rotation;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
+import java.awt.image.AffineTransformOp;
+import java.awt.image.BufferedImage;
+import java.awt.image.ImageObserver;
 import java.util.*;
 import java.util.List;
 
@@ -107,14 +110,23 @@ public class Main {
             }
 
             LargeGraphics2DFramebuffer sanity = new LargeGraphics2DFramebuffer(128 * 2, 128);
-            SanityManager.drawSanity(sanity.getRenderer(), 128 * 2, 128, 10);
+            try {
+                System.out.println(GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices().length);
+                GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices()[0];
+                Robot robot = new Robot(gd);
+                BufferedImage bi = robot.createScreenCapture(new Rectangle(gd.getDisplayMode().getWidth(), gd.getDisplayMode().getHeight()));
+                sanity.getRenderer().drawImage(bi, 0, 0, 128 * 2, 128, null);
+            } catch (AWTException e) {
+                throw new RuntimeException(e);
+            }
+            //SanityManager.drawSanity(sanity.getRenderer(), 128 * 2, 128, 10);
 
             for(Player p : MinecraftServer.getConnectionManager().getOnlinePlayers()) {
                 p.sendPacket(sanity.preparePacket(3, 0, 0));
                 p.sendPacket(sanity.preparePacket(4, 128, 0));
             }
 
-            return TaskSchedule.seconds(1);
+            return TaskSchedule.millis(500);
         });
     }
 

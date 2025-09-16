@@ -22,7 +22,10 @@ public class ItemEntity extends Entity {
         super(EntityType.ITEM_DISPLAY);
 
         this.interactionEntity = new Entity(EntityType.INTERACTION);
+        load(itemStack);
+    }
 
+    private void load(ItemStack itemStack) {
         ItemModelProvider.ItemModel itemModel = ItemModelProvider.getItemModel(itemStack.get(DataComponents.ITEM_MODEL));
         BoundingBox bb = itemModel.boundingBox();
         assert bb != null;
@@ -53,6 +56,10 @@ public class ItemEntity extends Entity {
         return ((ItemDisplayMeta) this.getEntityMeta()).getItemStack();
     }
 
+    public void setItem(ItemStack itemStack) {
+        load(itemStack);
+    }
+
     @Override
     public CompletableFuture<Void> setInstance(Instance instance, Pos spawnPosition) {
         super.setInstance(instance, spawnPosition).join();
@@ -64,5 +71,10 @@ public class ItemEntity extends Entity {
     public CompletableFuture<Void> teleport(Pos position, Vec velocity, long @Nullable [] chunks, int flags, boolean shouldConfirm) {
         interactionEntity.teleport(position, velocity, chunks, flags, shouldConfirm);
         return super.teleport(position, velocity, chunks, flags, shouldConfirm);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return super.equals(obj) || interactionEntity.equals(obj);
     }
 }

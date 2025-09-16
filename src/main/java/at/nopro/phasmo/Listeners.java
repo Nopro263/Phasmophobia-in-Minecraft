@@ -2,6 +2,7 @@ package at.nopro.phasmo;
 
 import at.nopro.phasmo.game.GameContext;
 import at.nopro.phasmo.game.GameManager;
+import net.kyori.adventure.text.TextComponent;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.event.Event;
 import net.minestom.server.event.EventNode;
@@ -22,6 +23,11 @@ public class Listeners {
 
             event.setSpawningInstance(context.getInstance());
             event.getPlayer().setRespawnPoint(context.getMapContext().spawnPoint().asPos());
+
+            if(((TextComponent)event.getPlayer().getName()).content().equals("CAM")) {
+                context.setCamPlayer(event.getPlayer());
+                event.getPlayer().setRespawnPoint(context.getMapContext().spawnPoint().add(3).asPos());
+            }
         });
 
         addListener(PlayerBlockPlaceEvent.class, event -> {
