@@ -35,6 +35,8 @@ public class GameContext {
     private final MapContext mapContext;
     private InstanceContainer instance;
     private PathCache pathCache;
+    private DisplayManager displayManager;
+    private CameraManager cameraManager;
     private EventNode<@NotNull Event> eventNode;
     private EventNode<@NotNull Event> monitoringEventNode;
     public PhasmoEntity entity;
@@ -46,12 +48,16 @@ public class GameContext {
     }
 
     private void load() {
+        this.displayManager = new DisplayManager(this);
+
         instance = MinecraftServer.getInstanceManager().createInstanceContainer();
-        instance.setChunkLoader(new EntityLoader(mapContext.worldPath()));
+        instance.setChunkLoader(new EntityLoader(mapContext.worldPath(), this.displayManager::modifyEntity));
         instance.setChunkSupplier(LightingChunk::new);
         instance.setTimeRate(0);
 
         instance.setTime(mapContext.time());
+
+        displayManager.init();
 
         int cx1 = CoordConversion.globalToChunk(mapContext.lowerEnd().x() - 1);
         int cz1 = CoordConversion.globalToChunk(mapContext.lowerEnd().z() - 1);
@@ -94,9 +100,7 @@ public class GameContext {
         this.entity = new TestGhost(this);
         this.entity.setInstance(instance, new Pos(-8, -42, 3));
 
-        this.monitoringEventNode.addListener(PlayerSwapItemEvent.class, (event) -> {
-
-        });
+        this.cameraManager = new CameraManager(this);
     }
 
     private void listenTo(Class<? extends Event> clazz) {
@@ -132,7 +136,6 @@ public class GameContext {
 
     public void setCamPlayer(Player camPlayer) {
         this.camPlayer = camPlayer;
-        camPlayer.setGameMode(GameMode.SPECTATOR);
     }
 
     public MapContext getMapContext() {
@@ -149,5 +152,13 @@ public class GameContext {
 
     public EventNode<@NotNull Event> getEventNode() {
         return eventNode;
+    }
+
+    public DisplayManager getDisplayManager() {
+        return displayManager;
+    }
+
+    public CameraManager getCameraManager() {
+        return cameraManager;
     }
 }

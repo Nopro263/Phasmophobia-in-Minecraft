@@ -8,5 +8,6 @@ public record MapContext(
         long time,
         Point spawnPoint,
         Point lowerEnd,
-        Point upperEnd
+        Point upperEnd,
+        Point nvButtonVan
 ) {}

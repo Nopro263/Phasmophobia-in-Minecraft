@@ -23,16 +23,24 @@ import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.util.UUID;
+import java.util.function.Function;
 
 public class EntityLoader extends AnvilLoader {
     private final Path entityPath;
-    public EntityLoader(Path path) {
+    private final Function<Entity, Entity> entityModifier;
+
+    public EntityLoader(Path path, Function<Entity, Entity> entityModifier) {
         super(path);
+        this.entityModifier = entityModifier;
         this.entityPath = path.resolve("entities");
     }
 
+    public EntityLoader(String path, Function<Entity, Entity> entityModifier) {
+        this(Path.of(path), entityModifier);
+    }
+
     public EntityLoader(String path) {
-        this(Path.of(path));
+        this(Path.of(path), null);
     }
 
     @Override
@@ -119,6 +127,10 @@ public class EntityLoader extends AnvilLoader {
         MetadataMapper.META_CONSUMER.get(id).accept(entity, meta);
         meta.setNotifyAboutChanges(true);
 
-        return e;
+        if(this.entityModifier == null) {
+            return e;
+        } else {
+            return this.entityModifier.apply(e);
+        }
     }
 }
