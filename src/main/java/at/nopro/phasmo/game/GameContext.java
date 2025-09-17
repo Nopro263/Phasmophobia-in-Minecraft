@@ -57,8 +57,6 @@ public class GameContext {
 
         instance.setTime(mapContext.time());
 
-        displayManager.init();
-
         int cx1 = CoordConversion.globalToChunk(mapContext.lowerEnd().x() - 1);
         int cz1 = CoordConversion.globalToChunk(mapContext.lowerEnd().z() - 1);
 
@@ -88,6 +86,8 @@ public class GameContext {
         );
 
         System.out.println("Generated pathfinding map in " + (System.currentTimeMillis() - start) + "ms");
+
+        displayManager.init();
 
         this.eventNode = MinecraftServer.getGlobalEventHandler().addChild(EventNode.type("phasmo", EventFilter.ALL));
         this.monitoringEventNode = EventNode.all("phasmo-monitor");

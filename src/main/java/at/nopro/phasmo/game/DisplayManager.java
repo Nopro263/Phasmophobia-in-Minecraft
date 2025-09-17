@@ -32,19 +32,27 @@ public class DisplayManager {
     private final int MAP4 = 8;
     private final int CAM1 = 9;
     private final int CAM2 = 10;
+    private final int CAM3 = 11;
+    private final int CAM4 = 12;
+    private final int CAM5 = 13;
+    private final int CAM6 = 14;
+    private final int CAM7 = 15;
+    private final int CAM8 = 16;
 
     private final MapDataPacket[] sanityCache = new MapDataPacket[2];
     private final MapDataPacket[] activityCache = new MapDataPacket[2];
-    private final MapDataPacket[] mapCache = new MapDataPacket[4];
-    private final MapDataPacket[] camCache = new MapDataPacket[2];
+    private final MapDataPacket[][] mapCache;
+    private final MapDataPacket[] camCache = new MapDataPacket[8];
 
     private final GameContext gameContext;
+    private int currentMapLevel = 0;
 
     private Robot camRobot;
     private Rectangle camRectangle;
 
     public DisplayManager(GameContext gameContext) {
         this.gameContext = gameContext;
+        this.mapCache = new MapDataPacket[gameContext.getMapContext().validLevels().size()][4];
     }
 
     public void init() {
@@ -57,6 +65,10 @@ public class DisplayManager {
         drawMap();
         drawSanity();
 
+        for (int i = 0; i < gameContext.getMapContext().validLevels().size(); i++) {
+            renderMapAtLevel(i, gameContext.getMapContext().validLevels().get(i));
+        }
+
         ScopedScheduler.run(this.hashCode()+"VanCam", () -> {
             try {
                 drawCam();
@@ -64,6 +76,39 @@ public class DisplayManager {
                 throw new RuntimeException(e);
             }
             return TaskSchedule.tick(1);
+        });
+    }
+
+    private void renderMapAtLevel(int levelId, int level) {
+        int x1 = gameContext.getMapContext().lowerEnd().blockX();
+        int x2 = gameContext.getMapContext().upperEnd().blockX();
+        int z1 = gameContext.getMapContext().lowerEnd().blockZ();
+        int z2 = gameContext.getMapContext().upperEnd().blockZ();
+
+        int sx = x2 - x1 + 1;
+        int sz = z2 - z1 + 1;
+        int size = Math.max(sx,sz);
+        double scale = 256d / size;
+
+        render2x2(mapCache[levelId], MAP1, MAP2, MAP3, MAP4, (g) -> {
+            g.setPaint(Color.BLACK);
+            g.scale(scale, scale);
+            switch (gameContext.getMapContext().mapUpIsDirection()) {
+                case NORTH -> g.rotate(0);
+                case WEST -> g.rotate(Math.toRadians(90),sx/2d, sx/2d);
+                case SOUTH -> g.rotate(Math.toRadians(180),sx/2d, sx/2d);
+                case EAST -> g.rotate(Math.toRadians(270),sx/2d, sx/2d);
+            }
+
+            g.fillRect(0,0,sx,sz);
+            g.setPaint(Color.LIGHT_GRAY);
+            for (int i = x1; i <= x2; i++) {
+                for (int j = z1; j <= z2; j++) {
+                    if(gameContext.getPathCache().isInvalid((short) i, (short) level, (short) j)) {
+                        g.fillRect(i-x1,j-z1,1,1);
+                    }
+                }
+            }
         });
     }
 
@@ -86,10 +131,36 @@ public class DisplayManager {
     }
 
     public void sendAllCached(Player player) {
-        for(MapDataPacket[] m : List.of(sanityCache, activityCache, mapCache, camCache)) {
+        for(MapDataPacket[] m : List.of(sanityCache, activityCache, mapCache[currentMapLevel], camCache)) {
             for(MapDataPacket mp : m) {
                 player.sendPacket(mp);
             }
+        }
+    }
+
+    private void render4x2(MapDataPacket[] cache, int map1, int map2, int map3, int map4, int map5, int map6, int map7, int map8, Consumer<Graphics2D> renderer) {
+        LargeGraphics2DFramebuffer sanity = new LargeGraphics2DFramebuffer(128 * 4, 128 * 2);
+        Graphics2D g = sanity.getRenderer();
+
+        renderer.accept(g);
+
+        cache[0] = sanity.preparePacket(map1, 0,0);
+        cache[1] = sanity.preparePacket(map2, 128,0);
+        cache[2] = sanity.preparePacket(map3, 128 * 2,0);
+        cache[3] = sanity.preparePacket(map4, 128 * 3,0);
+        cache[4] = sanity.preparePacket(map5, 0,128);
+        cache[5] = sanity.preparePacket(map6, 128,128);
+        cache[6] = sanity.preparePacket(map7, 128 * 2,128);
+        cache[7] = sanity.preparePacket(map8, 128 * 3,128);
+        for(Player player : gameContext.getInstance().getPlayers()) {
+            player.sendPacket(cache[0]);
+            player.sendPacket(cache[1]);
+            player.sendPacket(cache[2]);
+            player.sendPacket(cache[3]);
+            player.sendPacket(cache[4]);
+            player.sendPacket(cache[5]);
+            player.sendPacket(cache[6]);
+            player.sendPacket(cache[7]);
         }
     }
 
@@ -145,16 +216,21 @@ public class DisplayManager {
             camRobot = new Robot(gd);
             camRectangle = new Rectangle(gd.getDisplayMode().getWidth(), gd.getDisplayMode().getHeight());
         }
-        render2x1(camCache, CAM1, CAM2, (g) -> {
+        render4x2(camCache, CAM1, CAM2, CAM3, CAM4, CAM5, CAM6,CAM7, CAM8,(g) -> {
             BufferedImage screenShot = camRobot.createScreenCapture(camRectangle);
-            g.drawImage(screenShot,0,0,128*2,128, null);
+            g.drawImage(screenShot,0,0,128*4,128 * 2, null);
         });
     }
 
     public void drawMap() {
-        render2x2(mapCache, MAP1, MAP2, MAP3, MAP4, (g) -> {
-            g.setPaint(Color.BLUE);
-            g.fillRect(0,0,128*2,128*2);
-        });
+
+    }
+
+    public void increaseMapLevel() {
+        currentMapLevel = Math.min(currentMapLevel+1, gameContext.getMapContext().validLevels().size());
+    }
+
+    public void decreaseMapLevel() {
+        currentMapLevel = Math.max(0, currentMapLevel-1);
     }
 }

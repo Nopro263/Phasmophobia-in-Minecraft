@@ -23,7 +23,7 @@ import java.util.function.Consumer;
 public class Listeners {
     public static void init() {
         addListener(AsyncPlayerPreLoginEvent.class, asyncPlayerPreLoginEvent -> {
-            asyncPlayerPreLoginEvent.setGameProfile(new GameProfile(UUID.randomUUID(), asyncPlayerPreLoginEvent.getGameProfile().name()));
+            //asyncPlayerPreLoginEvent.setGameProfile(new GameProfile(UUID.randomUUID(), asyncPlayerPreLoginEvent.getGameProfile().name()));
         });
         addListener(AsyncPlayerConfigurationEvent.class, event -> {
             GameContext context = GameManager.getGame("default");

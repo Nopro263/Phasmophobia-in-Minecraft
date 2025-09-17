@@ -2,6 +2,9 @@ package at.nopro.phasmo.game;
 
 
 import net.minestom.server.coordinate.Point;
+import net.minestom.server.utils.Direction;
+
+import java.util.List;
 
 public record MapContext(
         String worldPath,
@@ -9,5 +12,7 @@ public record MapContext(
         Point spawnPoint,
         Point lowerEnd,
         Point upperEnd,
-        Point nvButtonVan
+        List<Integer> validLevels,
+        Point nvButtonVan,
+        Direction mapUpIsDirection
 ) {}

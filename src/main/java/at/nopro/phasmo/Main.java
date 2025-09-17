@@ -46,11 +46,11 @@ public class Main {
     public static void main(String[] args) throws IOException {
         VirtualClient virtualClient = new VirtualClient(new File("/home/noah/Documents/privat/hmcTest"));
         MinecraftServer minecraftServer = MinecraftServer.init();
-        MojangAuth.init();
 
         MinecraftServer.getCommandManager().register(new Test());
         MinecraftServer.getCommandManager().register(new Test2());
         MinecraftServer.getCommandManager().register(new Test3());
+        MinecraftServer.getCommandManager().register(new Test4());
 
         Listeners.init();
         ItemTracker.init();
@@ -62,6 +62,22 @@ public class Main {
         VoiceChat voiceChat = VoiceChat.builder("0.0.0.0",25565).enable();
 
         minecraftServer.start("0.0.0.0", 25565);
+    }
+
+    private static class Test4 extends Command {
+
+        public Test4() {
+            super("cam");
+
+
+            addSyntax((sender, ctx) -> {
+                if(sender instanceof Player player) {
+                    GameContext gameContext = GameManager.getGame(player.getInstance());
+
+                    gameContext.getCameraManager().teleport(player.getPosition());
+                }
+            });
+        }
     }
 
     private static class Test3 extends Command {
