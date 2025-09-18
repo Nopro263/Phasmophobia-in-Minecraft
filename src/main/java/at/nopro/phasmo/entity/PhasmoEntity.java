@@ -9,6 +9,7 @@ import net.minestom.server.collision.BoundingBox;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.entity.EntityCreature;
 import net.minestom.server.entity.EntityType;
+import net.minestom.server.timer.TaskSchedule;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -27,11 +28,16 @@ public class PhasmoEntity extends EntityCreature {
 
         this.getNavigator().setNodeGenerator(() -> nodeGenerator);
         this.getNavigator().setNodeFollower(() -> nodeFollower);
+
+        gameContext.getScheduler().run("send-updates", () -> {
+            gameContext.getEventNode().call(new GhostEvent(gameContext, GhostEvent.ActionType.INTERACT, position));
+            return TaskSchedule.seconds(2);
+        });
     }
 
     @Override
     public void update(long time) {
-        gameContext.getEventNode().call(new GhostEvent(gameContext, GhostEvent.ActionType.INTERACT, position));
+
         super.update(time);
     }
 

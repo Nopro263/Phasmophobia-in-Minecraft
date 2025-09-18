@@ -35,7 +35,7 @@ public class EMF_Reader implements Equipment {
         if(entity.getPosition().distanceSquared(ghostEvent.getOrigin()) <= 25) {
             r.set(ItemProvider.getEMFReader(ghostEvent.getEmfLevel()));
 
-            ScopedScheduler.run(r.hashCode() + "", (isFirstRun) -> {
+            ghostEvent.getGameContext().getScheduler().run(r.hashCode() + "", (isFirstRun) -> {
                 if(isFirstRun) return TaskSchedule.seconds(1);
 
                 int level = 5-r.get().get(DataComponents.DAMAGE);

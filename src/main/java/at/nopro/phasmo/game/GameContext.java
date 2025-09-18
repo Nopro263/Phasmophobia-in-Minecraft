@@ -37,6 +37,9 @@ public class GameContext {
     private PathCache pathCache;
     private DisplayManager displayManager;
     private CameraManager cameraManager;
+    private ActivityManager activityManager;
+    private ScopedScheduler scheduler;
+
     private EventNode<@NotNull Event> eventNode;
     private EventNode<@NotNull Event> monitoringEventNode;
     public PhasmoEntity entity;
@@ -48,6 +51,7 @@ public class GameContext {
     }
 
     private void load() {
+        this.scheduler = new ScopedScheduler();
         this.displayManager = new DisplayManager(this);
 
         instance = MinecraftServer.getInstanceManager().createInstanceContainer();
@@ -87,6 +91,7 @@ public class GameContext {
 
         System.out.println("Generated pathfinding map in " + (System.currentTimeMillis() - start) + "ms");
 
+        this.activityManager = new ActivityManager(this);
         displayManager.init();
 
         this.eventNode = MinecraftServer.getGlobalEventHandler().addChild(EventNode.type("phasmo", EventFilter.ALL));
@@ -101,6 +106,10 @@ public class GameContext {
         this.entity.setInstance(instance, new Pos(-8, -42, 3));
 
         this.cameraManager = new CameraManager(this);
+
+        this.monitoringEventNode.addListener(GhostEvent.class, event -> {
+            activityManager.onGhostEvent(event);
+        });
     }
 
     private void listenTo(Class<? extends Event> clazz) {
@@ -128,6 +137,14 @@ public class GameContext {
                 equipment.handle(event, itemEntity, ref);
             }
         });
+    }
+
+    public ScopedScheduler getScheduler() {
+        return scheduler;
+    }
+
+    public ActivityManager getActivityManager() {
+        return activityManager;
     }
 
     public Player getCamPlayer() {

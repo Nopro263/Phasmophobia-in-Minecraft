@@ -69,7 +69,7 @@ public class DisplayManager {
             renderMapAtLevel(i, gameContext.getMapContext().validLevels().get(i));
         }
 
-        ScopedScheduler.run(this.hashCode()+"VanCam", () -> {
+        gameContext.getScheduler().run(this.hashCode()+"VanCam", () -> {
             try {
                 drawCam();
             } catch (AWTException e) {
@@ -205,8 +205,9 @@ public class DisplayManager {
 
     public void drawActivity() {
         render2x1(activityCache, ACTIVITY1, ACTIVITY2, (g) -> {
-            g.setPaint(Color.LIGHT_GRAY);
-            g.fillRect(0,0,128*2,128);
+            g.setPaint(Color.RED);
+            //g.fillRect(0,0,128*2,128);
+            gameContext.getActivityManager().drawActivityLine(g,3,253,125,3);
         });
     }
 
