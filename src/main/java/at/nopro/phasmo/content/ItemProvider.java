@@ -3,6 +3,7 @@ package at.nopro.phasmo.content;
 import at.nopro.phasmo.content.equipment.EMF_Reader;
 import at.nopro.phasmo.content.equipment.EquipmentManager;
 import at.nopro.phasmo.content.equipment.Ghost_Book;
+import at.nopro.phasmo.content.equipment.Handheld_Camera;
 import net.kyori.adventure.text.Component;
 import net.minestom.server.component.DataComponents;
 import net.minestom.server.item.ItemStack;
@@ -36,6 +37,15 @@ public class ItemProvider {
                 .set(DataComponents.MAX_STACK_SIZE, 1)
                 .set(EquipmentManager.EQUIPMENT_TAG, EquipmentManager.get(Ghost_Book.class))
                 .customName(Component.text("written ghost book"))
+                .build();
+    }
+
+    public static ItemStack getHandheldCamera() {
+        return ItemStack.builder(Material.STICK)
+                .itemModel("phasmo:cam")
+                .set(DataComponents.MAX_STACK_SIZE, 1)
+                .set(EquipmentManager.EQUIPMENT_TAG, EquipmentManager.get(Handheld_Camera.class))
+                .customName(Component.text("Video Camera"))
                 .build();
     }
 }

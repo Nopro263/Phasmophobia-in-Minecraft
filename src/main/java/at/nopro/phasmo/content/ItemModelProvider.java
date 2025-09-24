@@ -29,6 +29,13 @@ public class ItemModelProvider {
                     new float[] {0,0,0,1},
                     Vec.ONE,
                     new float[] {0,0,0,1}
+            ),
+            "phasmo:cam", new ItemModel(
+                    new BoundingBox(0.3,0.3,0.3),
+                    new Pos(-0.15,0.22,0.15),
+                    new float[] {0,0,0,1},
+                    Vec.ONE,
+                    new float[] {0,0,0,1}
             )
     );
 

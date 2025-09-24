@@ -1,9 +1,6 @@
 package at.nopro.phasmo;
 
-import at.nopro.phasmo.content.equipment.EMF_Reader;
-import at.nopro.phasmo.content.equipment.Equipment;
-import at.nopro.phasmo.content.equipment.EquipmentManager;
-import at.nopro.phasmo.content.equipment.Ghost_Book;
+import at.nopro.phasmo.content.equipment.*;
 import at.nopro.phasmo.content.map.Maps;
 import at.nopro.phasmo.entity.PhasmoEntity;
 import at.nopro.phasmo.entity.ai.InvalidPositionException;
@@ -57,6 +54,7 @@ public class Main {
 
         EquipmentManager.register(new EMF_Reader());
         EquipmentManager.register(new Ghost_Book());
+        EquipmentManager.register(new Handheld_Camera());
 
         GameManager.createGame("default", Maps.TANGLEWOOD_DRIVE);
         VoiceChat voiceChat = VoiceChat.builder("0.0.0.0",25565).enable();
