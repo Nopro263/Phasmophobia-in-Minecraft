@@ -25,6 +25,18 @@ public class ItemEntity extends Entity {
         load(itemStack);
     }
 
+    public static ItemEntity get(Entity entity) {
+        if(entity.getEntityMeta() instanceof InteractionMeta) {
+            if(entity.getVehicle() == null) {
+                return null;
+            }
+            return get(entity.getVehicle());
+        } else if(entity instanceof ItemEntity itemEntity) {
+            return itemEntity;
+        }
+        return null;
+    }
+
     private void load(ItemStack itemStack) {
         ItemModelProvider.ItemModel itemModel = ItemModelProvider.getItemModel(itemStack.get(DataComponents.ITEM_MODEL));
         BoundingBox bb = itemModel.boundingBox();
@@ -63,8 +75,10 @@ public class ItemEntity extends Entity {
     @Override
     public CompletableFuture<Void> setInstance(Instance instance, Pos spawnPosition) {
         super.setInstance(instance, spawnPosition).join();
+
         this.addPassenger(interactionEntity);
-        return interactionEntity.setInstance(instance, spawnPosition);
+        interactionEntity.setInstance(instance, spawnPosition).join();
+        return teleport(position); // only to call Event on creation
     }
 
     @Override

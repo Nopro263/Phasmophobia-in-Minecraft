@@ -20,7 +20,10 @@ import net.minestom.server.event.EventBinding;
 import net.minestom.server.event.EventFilter;
 import net.minestom.server.event.EventNode;
 import net.minestom.server.event.entity.EntityAttackEvent;
+import net.minestom.server.event.entity.EntityTeleportEvent;
+import net.minestom.server.event.player.PlayerMoveEvent;
 import net.minestom.server.event.player.PlayerSwapItemEvent;
+import net.minestom.server.event.trait.EntityEvent;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.InstanceContainer;
 import net.minestom.server.instance.LightingChunk;
@@ -99,8 +102,11 @@ public class GameContext {
         this.monitoringEventNode.setPriority(99);
         this.eventNode.addChild(this.monitoringEventNode);
 
-        listenTo(GhostEvent.class);
-        listenTo(EntityAttackEvent.class);
+        listenToGlobalEvent(GhostEvent.class);
+
+        listenToEntityAttackEvent(EntityAttackEvent.class);
+        listenToEntityEvent(EntityTeleportEvent.class);
+        listenToEntityEvent(PlayerMoveEvent.class);
 
         this.entity = new TestGhost(this);
         this.entity.setInstance(instance, new Pos(-8, -42, 3));
@@ -112,7 +118,43 @@ public class GameContext {
         });
     }
 
-    private void listenTo(Class<? extends Event> clazz) {
+    private void listenToEntityEvent(Class<? extends EntityEvent> clazz) {
+        this.monitoringEventNode.addListener(clazz, (event) -> {
+            ItemReference ref;
+            if(event.getEntity() instanceof Player player) {
+                ref = ItemTracker.track(player, player.getHeldSlot());
+            } else if (ItemEntity.get(event.getEntity()) instanceof ItemEntity itemEntity) {
+                ref = ItemTracker.track(itemEntity);
+            } else {
+                return;
+            }
+
+            Equipment equipment = EquipmentManager.getEquipment(ref.get());
+            if(equipment == null) {
+                return;
+            }
+            equipment.handle(event, event.getEntity(), ref);
+        });
+    }
+
+    private void listenToEntityAttackEvent(Class<? extends EntityAttackEvent> clazz) {
+        this.monitoringEventNode.addListener(clazz, (event) -> {
+            ItemReference ref;
+            if (ItemEntity.get(event.getTarget()) instanceof ItemEntity itemEntity) {
+                ref = ItemTracker.track(itemEntity);
+            } else {
+                return;
+            }
+
+            Equipment equipment = EquipmentManager.getEquipment(ref.get());
+            if(equipment == null) {
+                return;
+            }
+            equipment.handle(event, event.getTarget(), ref);
+        });
+    }
+
+    private void listenToGlobalEvent(Class<? extends Event> clazz) {
         this.monitoringEventNode.addListener(clazz, (event) -> {
             for(Player player : instance.getPlayers()) {
                 ItemReference ref = ItemTracker.track(player, player.getHeldSlot());

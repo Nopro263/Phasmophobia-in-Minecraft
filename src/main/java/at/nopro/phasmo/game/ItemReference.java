@@ -7,6 +7,7 @@ import net.minestom.server.entity.metadata.display.ItemDisplayMeta;
 import net.minestom.server.entity.metadata.item.ItemEntityMeta;
 import net.minestom.server.item.ItemStack;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -14,6 +15,7 @@ import java.util.function.Supplier;
 public class ItemReference {
     private Supplier<ItemStack> getter;
     private Consumer<ItemStack> setter;
+    private Entity containingEntity;
     private boolean active;
 
     public ItemReference() {
@@ -29,6 +31,7 @@ public class ItemReference {
             getter = () -> player.getInventory().getItemStack(slot);
             setter = itemStack -> player.getInventory().setItemStack(slot, itemStack);
         }
+        containingEntity = player;
     }
 
     @ApiStatus.Internal
@@ -36,6 +39,7 @@ public class ItemReference {
         if(entity instanceof ItemEntity itemEntity) {
             getter = itemEntity::getItem;
             setter = itemEntity::setItem;
+            containingEntity = itemEntity;
             return;
         }
 
@@ -53,5 +57,9 @@ public class ItemReference {
 
     public void set(ItemStack itemStack) {
         setter.accept(itemStack);
+    }
+
+    public @NotNull Entity getContainingEntity() {
+        return containingEntity;
     }
 }
