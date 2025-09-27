@@ -36,11 +36,13 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
+import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 
 public class Main {
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, URISyntaxException {
         VirtualClient virtualClient = new VirtualClient(new File("/home/noah/Documents/privat/hmcTest"));
         MinecraftServer minecraftServer = MinecraftServer.init();
 
@@ -48,6 +50,8 @@ public class Main {
         MinecraftServer.getCommandManager().register(new Test2());
         MinecraftServer.getCommandManager().register(new Test3());
         MinecraftServer.getCommandManager().register(new Test4());
+
+        ResourcePackProvider.initFromDirectory("127.0.0.1", 28080, Path.of("packdir"));
 
         Listeners.init();
         ItemTracker.init();
