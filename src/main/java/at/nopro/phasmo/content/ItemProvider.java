@@ -41,7 +41,7 @@ public class ItemProvider {
     }
 
     public static ItemStack getHandheldCamera() {
-        return ItemStack.builder(Material.STICK)
+        return ItemStack.builder(Material.COW_SPAWN_EGG)
                 .itemModel("phasmo:cam")
                 .set(DataComponents.MAX_STACK_SIZE, 1)
                 .set(EquipmentManager.EQUIPMENT_TAG, EquipmentManager.get(Handheld_Camera.class))

@@ -21,6 +21,8 @@ import net.minestom.server.event.EventFilter;
 import net.minestom.server.event.EventNode;
 import net.minestom.server.event.entity.EntityAttackEvent;
 import net.minestom.server.event.entity.EntityTeleportEvent;
+import net.minestom.server.event.player.PlayerBlockInteractEvent;
+import net.minestom.server.event.player.PlayerChangeHeldSlotEvent;
 import net.minestom.server.event.player.PlayerMoveEvent;
 import net.minestom.server.event.player.PlayerSwapItemEvent;
 import net.minestom.server.event.trait.EntityEvent;
@@ -107,6 +109,8 @@ public class GameContext {
         listenToEntityAttackEvent(EntityAttackEvent.class);
         listenToEntityEvent(EntityTeleportEvent.class);
         listenToEntityEvent(PlayerMoveEvent.class);
+        listenToEntityEvent(PlayerBlockInteractEvent.class);
+        listenToEntityEvent(PlayerChangeHeldSlotEvent.class);
 
         this.entity = new TestGhost(this);
         this.entity.setInstance(instance, new Pos(-8, -42, 3));

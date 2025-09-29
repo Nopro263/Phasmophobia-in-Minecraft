@@ -2,6 +2,7 @@ package at.nopro.phasmo.game;
 
 import at.nopro.phasmo.Pair;
 import at.nopro.phasmo.entity.ItemEntity;
+import at.nopro.phasmo.event.PlaceEquipmentEvent;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.entity.Entity;
 import net.minestom.server.entity.Player;
@@ -30,6 +31,7 @@ public class ItemTracker {
         MinecraftServer.getGlobalEventHandler().addChild(node);
 
         node.addListener(ItemDropEvent.class, ItemTracker::handleDrop);
+        node.addListener(PlaceEquipmentEvent.class, ItemTracker::handlePlace);
         node.addListener(PlayerSwapItemEvent.class, ItemTracker::handleSwap);
         node.addListener(PlayerPickEntityEvent.class, ItemTracker::handlePickUp);
         node.addListener(InventoryPreClickEvent.class, ItemTracker::handleInventoryClick);
@@ -66,6 +68,24 @@ public class ItemTracker {
         }
     }
 
+    private static void handlePlace(PlaceEquipmentEvent event) {
+        final Player player = (Player) event.getItemReference().getContainingEntity(); // if this errors, how does a non-player place equipment?
+        int mainHandSlot = player.getHeldSlot();
+        Pair<Player, Integer> mainHandPair = new Pair<>(player, mainHandSlot);
+        ItemReference mainHandTracker = playerSlotMap.get(mainHandPair);
+
+        ItemEntity itemEntity = new ItemEntity(event.getItemReference().get());
+
+        if(mainHandTracker != null) {
+            player.setItemInMainHand(ItemStack.AIR);
+            mainHandTracker.setAsEntity(itemEntity);
+            playerSlotMap.remove(mainHandPair);
+            itemMap.put(itemEntity, mainHandTracker);
+        }
+
+        itemEntity.setInstance(event.getGameContext().getInstance(), event.getPos());
+    }
+
     private static void handleDrop(ItemDropEvent event) {
         final Player player = event.getPlayer();
         int mainHandSlot = player.getHeldSlot();
@@ -75,6 +95,7 @@ public class ItemTracker {
         ItemEntity itemEntity = new ItemEntity(event.getItemStack());
 
         if(mainHandTracker != null) {
+            player.setItemInMainHand(ItemStack.AIR);
             mainHandTracker.setAsEntity(itemEntity);
             playerSlotMap.remove(mainHandPair);
             itemMap.put(itemEntity, mainHandTracker);

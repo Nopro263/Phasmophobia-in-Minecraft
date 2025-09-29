@@ -14,11 +14,9 @@ import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.file.FileVisitResult;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.SimpleFileVisitor;
+import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.zip.ZipEntry;
@@ -109,7 +107,7 @@ public class ResourcePackProvider implements HttpHandler {
 
                 ZipOutputStream zos = new ZipOutputStream(rawPackData)
         ) {
-            Files.walkFileTree(path, new SimpleFileVisitor<Path>() {
+            Files.walkFileTree(path, Set.of(FileVisitOption.FOLLOW_LINKS), Integer.MAX_VALUE,  new SimpleFileVisitor<Path>() {
                 public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
                     zos.putNextEntry(new ZipEntry(path.relativize(file).toString()));
                     Files.copy(file, zos);
