@@ -44,6 +44,7 @@ public class GameContext {
     private CameraManager cameraManager;
     private ActivityManager activityManager;
     private ScopedScheduler scheduler;
+    private RoomManager roomManager;
 
     private EventNode<@NotNull Event> eventNode;
     private EventNode<@NotNull Event> monitoringEventNode;
@@ -58,9 +59,14 @@ public class GameContext {
     private void load() {
         this.scheduler = new ScopedScheduler();
         this.displayManager = new DisplayManager(this);
+        this.roomManager = new RoomManager(this);
 
         instance = MinecraftServer.getInstanceManager().createInstanceContainer();
-        instance.setChunkLoader(new EntityLoader(mapContext.worldPath(), this.displayManager::modifyEntity));
+        instance.setChunkLoader(new EntityLoader(mapContext.worldPath(), (e) -> {
+            e = this.displayManager.modifyEntity(e);
+            e = this.roomManager.parseEntity(e);
+            return e;
+        }));
         instance.setChunkSupplier(LightingChunk::new);
         instance.setTimeRate(0);
 
@@ -223,5 +229,9 @@ public class GameContext {
 
     public CameraManager getCameraManager() {
         return cameraManager;
+    }
+
+    public RoomManager getRoomManager() {
+        return roomManager;
     }
 }

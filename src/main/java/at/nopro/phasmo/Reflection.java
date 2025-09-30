@@ -26,4 +26,28 @@ public class Reflection {
             return null;
         }
     }
+
+    public static void set(Object o, String name, Object v) {
+        try {
+            Field f = o.getClass().getDeclaredField(name);
+            f.setAccessible(true);
+            f.set(o, v);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        } catch (NoSuchFieldException e) {
+
+        }
+    }
+
+    public static void setStatic(Object o, String name, Object v) {
+        try {
+            Field f = o.getClass().getDeclaredField(name);
+            f.setAccessible(true);
+            f.set(null, v);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        } catch (NoSuchFieldException e) {
+
+        }
+    }
 }

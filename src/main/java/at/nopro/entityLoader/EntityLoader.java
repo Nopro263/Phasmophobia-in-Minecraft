@@ -1,5 +1,6 @@
 package at.nopro.entityLoader;
 
+import at.nopro.phasmo.Reflection;
 import net.kyori.adventure.nbt.BinaryTag;
 import net.kyori.adventure.nbt.BinaryTagTypes;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
@@ -83,6 +84,9 @@ public class EntityLoader extends AnvilLoader {
                     if(entityTag instanceof CompoundBinaryTag entity) {
 
                         Entity e = loadEntity(entity);
+                        if(e == null) {
+                            continue;
+                        }
 
                         ListBinaryTag listBinaryTag = entity.getList("Pos");
 
@@ -93,6 +97,9 @@ public class EntityLoader extends AnvilLoader {
                         ListBinaryTag passengerTag = entity.getList("Passengers");
                         for (int i = 0; i < passengerTag.size(); i++) {
                             Entity passenger = loadEntity(passengerTag.getCompound(i));
+                            if(passenger == null) {
+                                continue;
+                            }
                             passenger.setInstance(instance, p);
 
                             MinecraftServer.getSchedulerManager().submitTask(() -> {
@@ -121,10 +128,15 @@ public class EntityLoader extends AnvilLoader {
 
         e = new Entity(MetadataMapper.MAP.get(id), new UUID(msb, lsb));
 
+        ListBinaryTag listBinaryTag = entity.getList("Pos");
+        Pos p = new Pos(listBinaryTag.getDouble(0), listBinaryTag.getDouble(1), listBinaryTag.getDouble(2));
+
+        Reflection.set(e, "position", p);
+
         EntityMeta meta = e.getEntityMeta();
 
         meta.setNotifyAboutChanges(false);
-        MetadataMapper.META_CONSUMER.get(id).accept(entity, meta);
+        MetadataMapper.META_CONSUMER.get(id).accept(entity, e);
         meta.setNotifyAboutChanges(true);
 
         if(this.entityModifier == null) {

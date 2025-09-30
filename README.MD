@@ -5,18 +5,18 @@
 - eigener navigator und pathfinder (Navigation meshes + nodes with height)
 - [x] Voice chat integration https://github.com/LooFifteen/simple-voice-chat-minestom
 - custom data for blocks in vanilla
-- camera rendering
+- [x] camera rendering
 - ghost behavior tree
 - fix ghost movement
 - lights in house
 - equipment
-  - camera
+  - [x] camera
   - flashlight
   - uv-flashlight
   - dots-projector
   - thermometer
-  - book
-  - emf reader
+  - ~ book
+  - [x] emf reader
   - spirit box (use voice chat and text chat)
   - optional
     - crucifix

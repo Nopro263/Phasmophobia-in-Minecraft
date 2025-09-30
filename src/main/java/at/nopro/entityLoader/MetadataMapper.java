@@ -1,9 +1,13 @@
 package at.nopro.entityLoader;
 
+import net.kyori.adventure.nbt.BinaryTag;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
 import net.kyori.adventure.nbt.ListBinaryTag;
+import net.minestom.server.coordinate.BlockVec;
+import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.coordinate.Vec;
+import net.minestom.server.entity.Entity;
 import net.minestom.server.entity.EntityType;
 import net.minestom.server.entity.MetadataDef;
 import net.minestom.server.entity.metadata.EntityMeta;
@@ -17,6 +21,7 @@ import net.minestom.server.entity.metadata.other.ItemFrameMeta;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.Material;
+import net.minestom.server.tag.Tag;
 import net.minestom.server.utils.Direction;
 import net.minestom.server.utils.Rotation;
 
@@ -30,8 +35,10 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 public class MetadataMapper {
+    public static Tag<BinaryTag> DATA_TAG = Tag.NBT("data");
+
     public static Map<String, EntityType> MAP = new HashMap<>();
-    public static Map<String, BiConsumer<CompoundBinaryTag, EntityMeta>> META_CONSUMER = new HashMap<>();
+    public static Map<String, BiConsumer<CompoundBinaryTag, Entity>> META_CONSUMER = new HashMap<>();
     private static Class<?>[] SIGNATURE = new Class[] {CompoundBinaryTag.class, EntityMeta.class};
 
     @Retention(RetentionPolicy.RUNTIME)
@@ -45,13 +52,17 @@ public class MetadataMapper {
                 if(Arrays.equals(m.getParameterTypes(), SIGNATURE) && m.isAnnotationPresent(NBTParser.class)) {
                     META_CONSUMER.put("minecraft:" + m.getName(), (ct, em) -> {
                         try {
-                            m.invoke(null, ct, em);
+                            m.invoke(null, ct, em.getEntityMeta());
                         } catch (IllegalAccessException | InvocationTargetException e) {
                             throw new RuntimeException(e);
                         }
                     });
                 }
             }
+
+            META_CONSUMER.put("minecraft:marker", (ct, em) -> {
+                marker(ct, em);
+            });
 
             Class<?> clazz = Class.forName("net.minestom.server.entity.EntityTypes");
             for(Field f : clazz.getDeclaredFields()) {
@@ -72,12 +83,44 @@ public class MetadataMapper {
 
     public static void init() {}
 
-    private static float[] listToFloatArray(ListBinaryTag listBinaryTag) {
+    public static float[] listToFloatArray(ListBinaryTag listBinaryTag) {
         float[] f = new float[listBinaryTag.size()];
         for (int i = 0; i < listBinaryTag.size(); i++) {
             f[i] = listBinaryTag.getFloat(i);
         }
         return f;
+    }
+
+    public static Vec listToVec(ListBinaryTag listBinaryTag, Point origin) {
+        String x = listBinaryTag.getString(0);
+        String y = listBinaryTag.getString(1);
+        String z = listBinaryTag.getString(2);
+
+        double xd,yd,zd;
+
+        if(x.startsWith("~")) {
+            xd = origin.x() + Double.parseDouble(x.substring(1));
+        } else {
+            xd = Double.parseDouble(x);
+        }
+
+        if(y.startsWith("~")) {
+            yd = origin.y() + Double.parseDouble(y.substring(1));
+        } else {
+            yd = Double.parseDouble(y);
+        }
+
+        if(z.startsWith("~")) {
+            zd = origin.z() + Double.parseDouble(z.substring(1));
+        } else {
+            zd = Double.parseDouble(z);
+        }
+
+        return new Vec(
+                xd,
+                yd,
+                zd
+        );
     }
 
     private static void parseEntity(CompoundBinaryTag compoundBinaryTag, EntityMeta entityMeta) {
@@ -178,5 +221,10 @@ public class MetadataMapper {
         itemFrameMeta.setRotation(Rotation.values()[compoundBinaryTag.getByte("itemRotation")]);
 
         parseHanging(compoundBinaryTag, entityMeta);
+    }
+
+    @NBTParser
+    private static void marker(CompoundBinaryTag compoundBinaryTag, Entity entity) {
+        entity.setTag(DATA_TAG, compoundBinaryTag.get("data"));
     }
 }

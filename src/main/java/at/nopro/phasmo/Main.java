@@ -7,9 +7,11 @@ import at.nopro.phasmo.entity.ai.InvalidPositionException;
 import at.nopro.phasmo.game.GameContext;
 import at.nopro.phasmo.game.GameManager;
 import at.nopro.phasmo.game.ItemTracker;
+import at.nopro.phasmo.game.RoomManager;
 import dev.lu15.voicechat.VoiceChat;
 import dev.lu15.voicechat.api.SoundSelector;
 import dev.lu15.voicechat.event.PlayerMicrophoneEvent;
+import net.kyori.adventure.text.Component;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.command.ArgumentParserType;
 import net.minestom.server.command.CommandSender;
@@ -22,6 +24,7 @@ import net.minestom.server.command.builder.suggestion.SuggestionCallback;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.coordinate.Vec;
+import net.minestom.server.entity.Entity;
 import net.minestom.server.entity.Player;
 import net.minestom.server.entity.pathfinding.PNode;
 import net.minestom.server.event.player.PlayerLoadedEvent;
@@ -49,7 +52,6 @@ public class Main {
         MinecraftServer.getCommandManager().register(new Test());
         MinecraftServer.getCommandManager().register(new Test2());
         MinecraftServer.getCommandManager().register(new Test3());
-        MinecraftServer.getCommandManager().register(new Test4());
 
         ResourcePackProvider.initFromDirectory("127.0.0.1", 28080, Path.of("packdir"));
 
@@ -63,24 +65,28 @@ public class Main {
         GameManager.createGame("default", Maps.TANGLEWOOD_DRIVE);
         VoiceChat voiceChat = VoiceChat.builder("0.0.0.0",25565).enable();
 
+        MinecraftServer.getSchedulerManager().submitTask(() -> {
+            for(Player player : MinecraftServer.getConnectionManager().getOnlinePlayers()) {
+                GameContext context = GameManager.getGame(player.getInstance());
+                if(context == null) {
+                    continue;
+                }
+                RoomManager.Room room = context.getRoomManager().getRoom(player.getPosition());
+                String n;
+                if(room == null) {
+                    n = "---";
+                } else {
+                    n = room.getName();
+                }
+
+                player.sendActionBar(Component.text(n));
+            }
+            return TaskSchedule.nextTick();
+        });
+
         minecraftServer.start("0.0.0.0", 25565);
     }
 
-    private static class Test4 extends Command {
-
-        public Test4() {
-            super("cam");
-
-
-            addSyntax((sender, ctx) -> {
-                if(sender instanceof Player player) {
-                    GameContext gameContext = GameManager.getGame(player.getInstance());
-
-                    gameContext.getCameraManager().teleport(player.getPosition());
-                }
-            });
-        }
-    }
 
     private static class Test3 extends Command {
 
