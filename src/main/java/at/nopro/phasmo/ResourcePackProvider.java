@@ -56,19 +56,22 @@ public class ResourcePackProvider implements HttpHandler {
         return provider;
     }
 
-    private void initResourcePack() throws URISyntaxException {
-        packInfo = ResourcePackInfo.resourcePackInfo()
-                .id(UUID.fromString("f40db609-a06b-4238-b06f-387672243b6e"))
-                .uri(new URI("http://" + ip + ":" + port + path))
-                .computeHashAndBuild().join();
-        resourcePack = ResourcePackRequest.resourcePackRequest()
-                .packs(packInfo)
-                .prompt(Component.text("use this resource pack"))
-                .required(true)
-                .replace(true)
-                .build();
-
+    private void initResourcePack() {
         MinecraftServer.getGlobalEventHandler().addListener(PlayerLoadedEvent.class, (event) -> {
+            try {
+                packInfo = ResourcePackInfo.resourcePackInfo()
+                        .id(UUID.fromString("f40db609-a06b-4238-b06f-387672243b6e"))
+                        .uri(new URI("http://" + event.getPlayer().getPlayerConnection().getServerAddress() + ":" + port + path))
+                        .computeHashAndBuild().join();
+            } catch (URISyntaxException e) {
+                throw new RuntimeException(e);
+            }
+            resourcePack = ResourcePackRequest.resourcePackRequest()
+                    .packs(packInfo)
+                    .prompt(Component.text("use this resource pack"))
+                    .required(true)
+                    .replace(false)
+                    .build();
             event.getPlayer().sendResourcePacks(resourcePack);
         });
 

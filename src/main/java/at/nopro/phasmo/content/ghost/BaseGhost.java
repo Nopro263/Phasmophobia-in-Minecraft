@@ -2,6 +2,7 @@ package at.nopro.phasmo.content.ghost;
 
 import at.nopro.phasmo.entity.PhasmoEntity;
 import at.nopro.phasmo.event.GhostEvent;
+import at.nopro.phasmo.event.TemperatureEvent;
 import at.nopro.phasmo.game.GameContext;
 import net.minestom.server.entity.EntityType;
 
@@ -20,6 +21,14 @@ public class BaseGhost extends PhasmoEntity {
                 if(emfRandom.nextBoolean()) {
                     event.setActionType(GhostEvent.ActionType.EMF_5);
                 }
+            }
+        });
+    }
+
+    protected void activateFreezing() {
+        gameContext.getEventNode().addListener(TemperatureEvent.class, (event) -> {
+            if(getRoom() == event.getRoom()) {
+                event.setTemperature(-10);
             }
         });
     }

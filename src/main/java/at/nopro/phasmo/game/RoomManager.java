@@ -1,6 +1,7 @@
 package at.nopro.phasmo.game;
 
 import at.nopro.entityLoader.MetadataMapper;
+import at.nopro.phasmo.event.TemperatureEvent;
 import net.kyori.adventure.nbt.BinaryTag;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
 import net.kyori.adventure.nbt.ListBinaryTag;
@@ -11,6 +12,7 @@ import net.minestom.server.coordinate.Vec;
 import net.minestom.server.entity.Entity;
 import net.minestom.server.entity.metadata.other.MarkerMeta;
 import net.minestom.server.item.component.CustomData;
+import net.minestom.server.timer.TaskSchedule;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
@@ -25,6 +27,21 @@ public class RoomManager {
 
     public RoomManager(GameContext gameContext) {
         this.gameContext = gameContext;
+
+        gameContext.getScheduler().run("room-manager", () -> {
+            tick();
+            return TaskSchedule.seconds(1);
+        });
+    }
+
+    private void tick() {
+        for(Room room : rooms) {
+            room.calculateTemperature();
+            gameContext.getEventNode().call(new TemperatureEvent(
+                    gameContext,
+                    room
+            ));
+        }
     }
 
     public @Nullable Room getRoom(Point point) {
@@ -68,9 +85,10 @@ public class RoomManager {
 
 
 
-    public static class Room {
+    public class Room {
         private final List<RoomPart> boundingBoxes = new ArrayList<>();
         private final String name;
+        private double temperature;
 
         public Room(String name) {
             this.name = name;
@@ -87,6 +105,18 @@ public class RoomManager {
                 }
             }
             return false;
+        }
+
+        public double getTemperature() {
+            return temperature;
+        }
+
+        public void setTemperature(double temperature) {
+            this.temperature = temperature;
+        }
+
+        public void calculateTemperature() {
+            temperature = 3;
         }
 
         private record RoomPart(Point a, Point b) {

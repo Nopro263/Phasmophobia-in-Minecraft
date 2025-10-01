@@ -53,7 +53,7 @@ public class Main {
         MinecraftServer.getCommandManager().register(new Test2());
         MinecraftServer.getCommandManager().register(new Test3());
 
-        ResourcePackProvider.initFromDirectory("127.0.0.1", 28080, Path.of("packdir"));
+        ResourcePackProvider.initFromDirectory("0.0.0.0", 28080, Path.of("packdir"));
 
         Listeners.init();
         ItemTracker.init();
@@ -61,6 +61,7 @@ public class Main {
         EquipmentManager.register(new EMF_Reader());
         EquipmentManager.register(new Ghost_Book());
         EquipmentManager.register(new Handheld_Camera());
+        EquipmentManager.register(new Thermometer());
 
         GameManager.createGame("default", Maps.TANGLEWOOD_DRIVE);
         VoiceChat voiceChat = VoiceChat.builder("0.0.0.0",25565).enable();

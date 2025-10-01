@@ -9,6 +9,7 @@ import at.nopro.phasmo.entity.ai.PathCache;
 import at.nopro.phasmo.entity.PhasmoEntity;
 import at.nopro.phasmo.event.GhostEvent;
 import at.nopro.phasmo.event.PhasmoEvent;
+import at.nopro.phasmo.event.TemperatureEvent;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.coordinate.CoordConversion;
 import net.minestom.server.coordinate.Pos;
@@ -111,6 +112,7 @@ public class GameContext {
         this.eventNode.addChild(this.monitoringEventNode);
 
         listenToGlobalEvent(GhostEvent.class);
+        listenToGlobalEvent(TemperatureEvent.class);
 
         listenToEntityAttackEvent(EntityAttackEvent.class);
         listenToEntityEvent(EntityTeleportEvent.class);

@@ -8,5 +8,6 @@ public class TestGhost extends BaseGhost {
         super(EntityType.WITHER_SKELETON, gameContext);
 
         activateEMF5();
+        activateFreezing();
     }
 }

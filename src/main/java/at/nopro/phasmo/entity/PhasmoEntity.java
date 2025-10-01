@@ -5,6 +5,7 @@ import at.nopro.phasmo.entity.ai.PhasmoNodeFollower;
 import at.nopro.phasmo.entity.ai.PhasmoNodeGenerator;
 import at.nopro.phasmo.event.GhostEvent;
 import at.nopro.phasmo.game.GameContext;
+import at.nopro.phasmo.game.RoomManager;
 import net.minestom.server.collision.BoundingBox;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.entity.EntityCreature;
@@ -39,6 +40,10 @@ public class PhasmoEntity extends EntityCreature {
     public void update(long time) {
 
         super.update(time);
+    }
+
+    public RoomManager.Room getRoom() {
+        return gameContext.getRoomManager().getRoom(position);
     }
 
     public CompletableFuture<PhasmoEntity> goTo(Point point) throws InvalidPositionException {
