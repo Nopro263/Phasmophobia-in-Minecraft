@@ -62,6 +62,7 @@ public class Main {
         EquipmentManager.register(new Ghost_Book());
         EquipmentManager.register(new Handheld_Camera());
         EquipmentManager.register(new Thermometer());
+        EquipmentManager.register(new Flashlight());
 
         GameManager.createGame("default", Maps.TANGLEWOOD_DRIVE);
         VoiceChat voiceChat = VoiceChat.builder("0.0.0.0",25565).enable();

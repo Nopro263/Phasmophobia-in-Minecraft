@@ -87,6 +87,8 @@ public class GameContext {
             }
         }
 
+        LightingChunk.relight(instance, instance.getChunks());
+
         System.out.println("Loaded chunks in " + (System.currentTimeMillis() - start) + "ms");
 
         start = System.currentTimeMillis();

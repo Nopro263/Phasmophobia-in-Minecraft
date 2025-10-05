@@ -36,6 +36,13 @@ public class ItemModelProvider {
                     new float[] {0,0,0,1},
                     Vec.ONE,
                     new float[] {0,0,0,1}
+            ),
+            "minecraft:lantern", new ItemModel(
+                    new BoundingBox(0.5,0.1875,0.5),
+                    new Pos(-0.350,0.250,-0.120),
+                    new float[] {0,0,0,1},
+                    Vec.ONE,
+                    new float[] {0,0,0,1}
             )
     );
 

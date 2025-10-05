@@ -31,6 +31,15 @@ public class ItemProvider {
                 .build();
     }
 
+    public static ItemStack getFlashlight() {
+        return ItemStack.builder(Material.LANTERN)
+                .itemModel("minecraft:lantern")
+                .set(DataComponents.MAX_STACK_SIZE, 1)
+                .set(EquipmentManager.EQUIPMENT_TAG, EquipmentManager.get(Flashlight.class))
+                .customName(Component.text("Flashlight"))
+                .build();
+    }
+
     public static ItemStack getClosedBook() {
         return ItemStack.builder(Material.STICK)
                 .itemModel("phasmo:book_closed")
