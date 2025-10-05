@@ -4,7 +4,12 @@ import net.minestom.server.coordinate.Pos;
 import net.minestom.server.potion.Potion;
 import net.minestom.server.potion.PotionEffect;
 
+import java.util.UUID;
+
 public class CameraManager {
+    private static String camPlayerName;
+    private static UUID camPlayerUUID;
+
     private final GameContext gameContext;
 
     public CameraManager(GameContext gameContext) {
@@ -25,5 +30,21 @@ public class CameraManager {
 
     public boolean hasNightVisionEnabled() {
         return this.gameContext.getCamPlayer().hasEffect(PotionEffect.NIGHT_VISION);
+    }
+
+    public static String getCamPlayerName() {
+        return camPlayerName;
+    }
+
+    public static void setCamPlayerName(String camPlayerName) {
+        CameraManager.camPlayerName = camPlayerName;
+    }
+
+    public static UUID getCamPlayerUUID() {
+        return camPlayerUUID;
+    }
+
+    public static void setCamPlayerUUID(UUID camPlayerUUID) {
+        CameraManager.camPlayerUUID = camPlayerUUID;
     }
 }

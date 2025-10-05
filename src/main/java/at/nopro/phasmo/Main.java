@@ -4,14 +4,12 @@ import at.nopro.phasmo.content.equipment.*;
 import at.nopro.phasmo.content.map.Maps;
 import at.nopro.phasmo.entity.PhasmoEntity;
 import at.nopro.phasmo.entity.ai.InvalidPositionException;
-import at.nopro.phasmo.game.GameContext;
-import at.nopro.phasmo.game.GameManager;
-import at.nopro.phasmo.game.ItemTracker;
-import at.nopro.phasmo.game.RoomManager;
+import at.nopro.phasmo.game.*;
 import dev.lu15.voicechat.VoiceChat;
 import dev.lu15.voicechat.api.SoundSelector;
 import dev.lu15.voicechat.event.PlayerMicrophoneEvent;
 import net.kyori.adventure.text.Component;
+import net.minestom.server.Auth;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.command.ArgumentParserType;
 import net.minestom.server.command.CommandSender;
@@ -28,7 +26,6 @@ import net.minestom.server.entity.Entity;
 import net.minestom.server.entity.Player;
 import net.minestom.server.entity.pathfinding.PNode;
 import net.minestom.server.event.player.PlayerLoadedEvent;
-import net.minestom.server.extras.MojangAuth;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.network.packet.server.play.BlockChangePacket;
 import net.minestom.server.network.packet.server.play.ParticlePacket;
@@ -39,15 +36,23 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 
 public class Main {
     public static void main(String[] args) throws IOException, URISyntaxException {
         VirtualClient virtualClient = new VirtualClient(new File("/home/noah/Documents/privat/hmcTest"));
-        MinecraftServer minecraftServer = MinecraftServer.init();
+
+        CameraManager.setCamPlayerName("CAM");
+        CameraManager.setCamPlayerUUID(UUID.fromString("22689332-a7fd-4191-9600-b0fe1135ee34"));
+
+        MinecraftServer minecraftServer = MinecraftServer.init(new Auth.Online());
+        MojangAuthWithExceptions auth = new MojangAuthWithExceptions();
 
         MinecraftServer.getCommandManager().register(new Test());
         MinecraftServer.getCommandManager().register(new Test2());
