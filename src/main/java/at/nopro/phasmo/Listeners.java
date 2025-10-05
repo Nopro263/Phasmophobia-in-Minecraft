@@ -1,5 +1,6 @@
 package at.nopro.phasmo;
 
+import at.nopro.phasmo.game.CameraManager;
 import at.nopro.phasmo.game.GameContext;
 import at.nopro.phasmo.game.GameManager;
 import at.nopro.phasmo.game.MapContext;
@@ -31,7 +32,9 @@ public class Listeners {
             event.setSpawningInstance(context.getInstance());
             event.getPlayer().setRespawnPoint(context.getMapContext().spawnPoint().asPos());
 
-            if(((TextComponent)event.getPlayer().getName()).content().equals("CAM")) {
+            if(((TextComponent)event.getPlayer().getName()).content().equals(CameraManager.getCamPlayerName()) &&
+                event.getPlayer().getUuid().equals(CameraManager.getCamPlayerUUID())) {
+
                 context.setCamPlayer(event.getPlayer());
                 event.getPlayer().setRespawnPoint(context.getMapContext().spawnPoint().add(0,0,3).asPos().withLookAt(context.getMapContext().spawnPoint()));
                 context.getCamPlayer().setAutoViewable(false);
