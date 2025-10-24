@@ -8,9 +8,10 @@
     <version>1.0.0</version>
 
     <properties>
-        <java.version>22</java.version>
+        <java.version>25</java.version>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
+        <maven.compiler.release>${java.version}</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
@@ -37,7 +38,7 @@
         <dependency>
             <groupId>net.minestom</groupId>
             <artifactId>minestom</artifactId>
-            <version>2025.10.04-1.21.8</version>
+            <version>2025.10.18-1.21.10</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>

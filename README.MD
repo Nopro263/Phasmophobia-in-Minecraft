@@ -9,12 +9,13 @@
 - ghost behavior tree
 - fix ghost movement
 - lights in house
+- sanity chart
 - equipment
   - [x] camera
-  - flashlight
+  - [x] flashlight
   - uv-flashlight
   - dots-projector
-  - thermometer
+  - ~ thermometer
   - ~ book
   - [x] emf reader
   - spirit box (use voice chat and text chat)

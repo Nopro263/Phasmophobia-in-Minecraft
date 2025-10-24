@@ -25,7 +25,8 @@ public class VirtualClient {
     }
 
     private void startMinecraftClient(File cwd) throws IOException {
-        ProcessBuilder processBuilder = new ProcessBuilder("/usr/bin/bash", "-c", "env DISPLAY=:" + screenId + " vglrun ./headlessmc-launcher --command launch fabric:1.21.8").directory(cwd);
+        ProcessBuilder processBuilder = new ProcessBuilder("/usr/bin/bash", "-c", "env DISPLAY=:" + screenId + " vglrun ./headlessmc-launcher --command launch fabric:1.21.10").directory(cwd);
+        processBuilder.inheritIO();
         this.minecraftProcess = processBuilder.start();
     }
 }

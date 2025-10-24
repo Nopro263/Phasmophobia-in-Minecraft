@@ -70,7 +70,7 @@ public class Main {
         EquipmentManager.register(new Flashlight());
 
         GameManager.createGame("default", Maps.TANGLEWOOD_DRIVE);
-        VoiceChat voiceChat = VoiceChat.builder("0.0.0.0",25565).enable();
+        //VoiceChat voiceChat = VoiceChat.builder("0.0.0.0",25565).enable(); Re enable after new version releases
 
         MinecraftServer.getSchedulerManager().submitTask(() -> {
             for(Player player : MinecraftServer.getConnectionManager().getOnlinePlayers()) {
