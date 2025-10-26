@@ -9,7 +9,10 @@ import at.nopro.phasmo.entity.ai.PathCache;
 import at.nopro.phasmo.entity.PhasmoEntity;
 import at.nopro.phasmo.event.GhostEvent;
 import at.nopro.phasmo.event.PhasmoEvent;
+import at.nopro.phasmo.event.SanityDrainEvent;
 import at.nopro.phasmo.event.TemperatureEvent;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.coordinate.CoordConversion;
 import net.minestom.server.coordinate.Pos;
@@ -30,6 +33,7 @@ import net.minestom.server.event.trait.EntityEvent;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.InstanceContainer;
 import net.minestom.server.instance.LightingChunk;
+import net.minestom.server.tag.Tag;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -46,6 +50,7 @@ public class GameContext {
     private ActivityManager activityManager;
     private ScopedScheduler scheduler;
     private RoomManager roomManager;
+    private PlayerManager playerManager;
 
     private EventNode<@NotNull Event> eventNode;
     private EventNode<@NotNull Event> monitoringEventNode;
@@ -126,9 +131,15 @@ public class GameContext {
         this.entity.setInstance(instance, new Pos(-8, -42, 3));
 
         this.cameraManager = new CameraManager(this);
+        this.playerManager = new PlayerManager(this);
 
         this.monitoringEventNode.addListener(GhostEvent.class, event -> {
             activityManager.onGhostEvent(event);
+            playerManager.onGhostEvent(event);
+        });
+
+        this.monitoringEventNode.addListener(SanityDrainEvent.class, event -> {
+            playerManager.onSanityDrain(event);
         });
     }
 
@@ -237,5 +248,9 @@ public class GameContext {
 
     public RoomManager getRoomManager() {
         return roomManager;
+    }
+
+    public PlayerManager getPlayerManager() {
+        return playerManager;
     }
 }

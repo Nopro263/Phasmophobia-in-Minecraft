@@ -47,12 +47,13 @@ import java.util.function.Function;
 public class Main {
     public static void main(String[] args) throws IOException, URISyntaxException {
         VirtualClient virtualClient = new VirtualClient(new File("/home/noah/Documents/privat/hmcTest"));
+        //virtualClient.start();
 
         CameraManager.setCamPlayerName("CAM");
         CameraManager.setCamPlayerUUID(UUID.fromString("22689332-a7fd-4191-9600-b0fe1135ee34"));
 
-        MinecraftServer minecraftServer = MinecraftServer.init(new Auth.Online());
-        MojangAuthWithExceptions auth = new MojangAuthWithExceptions();
+        MinecraftServer minecraftServer = MinecraftServer.init(/*new Auth.Online()*/);
+        //MojangAuthWithExceptions auth = new MojangAuthWithExceptions();
 
         MinecraftServer.getCommandManager().register(new Test());
         MinecraftServer.getCommandManager().register(new Test2());

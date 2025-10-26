@@ -7,11 +7,13 @@ public class GhostEvent implements PhasmoEvent {
     private final GameContext gameContext;
     private Point origin;
     private ActionType actionType;
+    private final ActionType originalActionType;
 
     public GhostEvent(GameContext gameContext, ActionType actionType, Point origin) {
         this.gameContext = gameContext;
         this.actionType = actionType;
         this.origin = origin;
+        this.originalActionType = actionType;
     }
 
     @Override
@@ -31,6 +33,10 @@ public class GhostEvent implements PhasmoEvent {
 
     public ActionType getActionType() {
         return actionType;
+    }
+
+    public ActionType getOriginalActionType() {
+        return originalActionType;
     }
 
     public void setActionType(ActionType actionType) {

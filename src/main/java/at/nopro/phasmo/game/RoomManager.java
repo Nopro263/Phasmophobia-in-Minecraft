@@ -10,6 +10,7 @@ import net.minestom.server.component.DataComponent;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Vec;
 import net.minestom.server.entity.Entity;
+import net.minestom.server.entity.Player;
 import net.minestom.server.entity.metadata.other.MarkerMeta;
 import net.minestom.server.item.component.CustomData;
 import net.minestom.server.timer.TaskSchedule;
@@ -18,6 +19,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Stream;
 
 import static at.nopro.entityLoader.MetadataMapper.DATA_TAG;
 
@@ -130,5 +133,14 @@ public class RoomManager {
                 return false;
             }
         };
+
+        public List<Player> getPlayers() {
+            return gameContext.getInstance().getPlayers().stream().filter((p) -> {
+                if(p == gameContext.getCamPlayer()) {
+                    return false;
+                }
+                return contains(p.getPosition());
+            }).toList();
+        }
     }
 }

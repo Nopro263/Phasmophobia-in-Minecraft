@@ -24,7 +24,7 @@ import java.util.function.Consumer;
 public class Listeners {
     public static void init() {
         addListener(AsyncPlayerPreLoginEvent.class, asyncPlayerPreLoginEvent -> {
-            //asyncPlayerPreLoginEvent.setGameProfile(new GameProfile(UUID.randomUUID(), asyncPlayerPreLoginEvent.getGameProfile().name()));
+            asyncPlayerPreLoginEvent.setGameProfile(new GameProfile(UUID.randomUUID(), asyncPlayerPreLoginEvent.getGameProfile().name()));
         });
         addListener(AsyncPlayerConfigurationEvent.class, event -> {
             GameContext context = GameManager.getGame("default");
@@ -44,11 +44,13 @@ public class Listeners {
             GameContext context = GameManager.getGame(event.getPlayer().getInstance());
 
             context.getDisplayManager().sendAllCached(event.getPlayer());
+            boolean isCamera = false;
 
             if(context.getCamPlayer() != null) {
                 PlayerInfoRemovePacket pirp = new PlayerInfoRemovePacket(context.getCamPlayer().getUuid());
 
                 if (context.getCamPlayer() == event.getPlayer()) {
+                    isCamera = true;
                     context.getCamPlayer().setGameMode(GameMode.SPECTATOR);
                     context.getCamPlayer().addEffect(new Potion(PotionEffect.NIGHT_VISION, 1, -1));
                     for (Player player : event.getInstance().getPlayers()) {
@@ -57,6 +59,11 @@ public class Listeners {
                 } else {
                     event.getPlayer().sendPacket(pirp);
                 }
+            }
+
+            if(!isCamera) {
+                context.getPlayerManager().initPlayerData(event.getPlayer());
+                context.getDisplayManager().drawSanity();
             }
         });
 

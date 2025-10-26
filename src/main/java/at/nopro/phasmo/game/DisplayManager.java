@@ -2,6 +2,7 @@ package at.nopro.phasmo.game;
 
 import at.nopro.phasmo.Pair;
 import at.nopro.phasmo.Reflection;
+import at.nopro.phasmo.Utils;
 import net.kyori.adventure.text.TextComponent;
 import net.minestom.server.component.DataComponents;
 import net.minestom.server.entity.Entity;
@@ -56,27 +57,27 @@ public class DisplayManager {
     }
 
     public void init() {
+        gameContext.getScheduler().run(this.hashCode()+"VanCam", () -> {
+            try {
+                drawCam();
+            } catch (AWTException e) {
+                System.err.println("Error during camera rendering: " + e);
+                render4x2(camCache, CAM1, CAM2, CAM3, CAM4, CAM5, CAM6,CAM7, CAM8,(g) -> {
+                    g.setPaint(Color.RED);
+                    g.fillRect(0,0,128*4,128 * 2);
+                });
+                return TaskSchedule.stop();
+            }
+            return TaskSchedule.tick(1);
+        });
+
         drawActivity();
-        try {
-            drawCam();
-        } catch (AWTException e) {
-            throw new RuntimeException(e); // hmmm
-        }
         drawMap();
         drawSanity();
 
         for (int i = 0; i < gameContext.getMapContext().validLevels().size(); i++) {
             renderMapAtLevel(i, gameContext.getMapContext().validLevels().get(i));
         }
-
-        gameContext.getScheduler().run(this.hashCode()+"VanCam", () -> {
-            try {
-                drawCam();
-            } catch (AWTException e) {
-                throw new RuntimeException(e);
-            }
-            return TaskSchedule.tick(1);
-        });
     }
 
     private void renderMapAtLevel(int levelId, int level) {
@@ -196,10 +197,74 @@ public class DisplayManager {
         }
     }
 
+    private void renderPlayerSanity(int padding, Graphics2D g, String name, int sanity, boolean alive, Color color, int x, int y) {
+        int font_height = g.getFontMetrics().getHeight();
+        int top_y = font_height * 2;
+        int size_y = 128 - top_y;
+
+        String percent;
+        int percent_width;
+        int width = 128-2*padding;
+        int height = size_y/2-2*padding;
+        int font_correction = font_height/4;
+
+        if(!alive) {
+            percent = "?";
+        } else {
+            percent = sanity + "%";
+        }
+        percent_width = g.getFontMetrics().stringWidth(percent);
+        g.setPaint(Color.WHITE);
+        g.drawRect(x, y, width, height); // outer outline
+        g.drawRect(x+1,y+height-font_height-1,width-1, font_height+1); // outline for colored bar
+        if(alive) {
+            g.setPaint(color.darker());
+            g.fillRect(x + 1, y + height - font_height, width - 1, font_height); // dark bar
+            g.setPaint(color);
+            g.fillRect(x + 1, y + height - font_height, (int) ( ( width - 1 ) * ( sanity / 100d ) ), font_height); // light bar
+        }
+        g.setPaint(Color.WHITE);
+        g.drawString(percent, x+width-percent_width, y+height-font_correction); // percentage text
+        g.drawString(name, x+1,y+(height-font_height)/2+font_correction); // Name
+    }
+
     public void drawSanity() {
         render2x1(sanityCache, SANITY1, SANITY2, (g) -> {
-            g.setPaint(Color.ORANGE);
-            g.fillRect(0,0,128*2,128);
+            g.setStroke(new BasicStroke(1));
+
+            int padding = 3;
+            int font_height = g.getFontMetrics().getHeight();
+
+            String average = "Average";
+            int average_width = g.getFontMetrics().stringWidth(average);
+            g.drawString(average, (128*2-average_width)/2, font_height);
+
+            int top_y = font_height * 2;
+            int size_y = 128 - top_y;
+            int[] x = new int[] {padding, padding+128, padding, padding+128};
+            int[] y = new int[] {top_y+padding, top_y+padding, top_y+padding+(size_y/2), top_y+padding+(size_y/2)};
+            int i = 0;
+            int sanity_sum = 0;
+
+            for(Player player : gameContext.getInstance().getPlayers()) {
+                if(player == gameContext.getCamPlayer()) {
+                    continue;
+                }
+                PlayerManager.PlayerData playerData = gameContext.getPlayerManager().getPlayerData(player);
+                sanity_sum += playerData.sanity();
+
+                renderPlayerSanity(padding, g,
+                        player.getUsername(),
+                        playerData.sanity(),
+                        playerData.alive(),
+                        playerData.color(),
+                        x[i], y[i]);
+                i++;
+            }
+
+            String average_percent = (sanity_sum / Math.max(i,1)) + "%";
+            int average_percent_width = g.getFontMetrics().stringWidth(average_percent);
+            g.drawString(average_percent, (128*2-average_percent_width)/2, font_height*2);
         });
     }
 
@@ -228,7 +293,7 @@ public class DisplayManager {
     }
 
     public void increaseMapLevel() {
-        currentMapLevel = Math.min(currentMapLevel+1, gameContext.getMapContext().validLevels().size());
+        currentMapLevel = Math.min(currentMapLevel+1, gameContext.getMapContext().validLevels().size()-1);
     }
 
     public void decreaseMapLevel() {

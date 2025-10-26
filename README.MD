@@ -9,7 +9,8 @@
 - ghost behavior tree
 - fix ghost movement
 - lights in house
-- sanity chart
+- [x] sanity chart
+- multiple cameras
 - equipment
   - [x] camera
   - [x] flashlight

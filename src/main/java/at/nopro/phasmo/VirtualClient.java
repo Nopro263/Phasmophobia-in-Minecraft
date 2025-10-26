@@ -7,6 +7,7 @@ public class VirtualClient {
     private int screenId;
     private Process xvfbProcess;
     private Process minecraftProcess;
+    private File hmcPath;
 
     public VirtualClient(File hmcPath) throws IOException {
         String displayVariable = System.getenv("DISPLAY");
@@ -14,8 +15,12 @@ public class VirtualClient {
             throw new RuntimeException("Did not find DISPLAY env-variable");
         }
         screenId = Integer.parseInt(displayVariable.substring(1)); // strip :
+        this.hmcPath = hmcPath;
 
         createVirtualScreen();
+    }
+
+    public void start() throws IOException {
         startMinecraftClient(hmcPath);
     }
 
