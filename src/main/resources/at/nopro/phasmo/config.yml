@@ -1,0 +1,30 @@
+mcServer:
+  host: 0.0.0.0
+  port: 25565
+  auth: offline # mojang | offline | velocity | bungee
+  secret: null
+
+voicechat:
+  enabled: true
+  host: 0.0.0.0
+  port: 25565 # can be the same as in mcServer -> vc uses udp
+
+resourcepackServer:
+  bind: # where to start the integrated server
+    host: 0.0.0.0
+    port: 28080
+    path: "./pack"
+
+  access: # where can the server be reached from the outside
+    host: 0.0.0.0 #0.0.0.0 means same ip as used to connect to server
+    port: 28080
+    https: false
+
+camera:
+  enabled: true
+  playerName: CAM
+  playerUuid: 22689332-a7fd-4191-9600-b0fe1135ee34
+  headlessmcPath: "./headlessmc"
+  minecraftPath: "./minecraft_camera"
+
+devMode: false

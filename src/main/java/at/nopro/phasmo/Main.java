@@ -5,7 +5,9 @@ import at.nopro.phasmo.content.map.Maps;
 import at.nopro.phasmo.entity.PhasmoEntity;
 import at.nopro.phasmo.entity.ai.InvalidPositionException;
 import at.nopro.phasmo.game.*;
+import dev.lu15.voicechat.VoiceChat;
 import net.kyori.adventure.text.Component;
+import net.minestom.server.Auth;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.command.builder.Command;
 import net.minestom.server.command.builder.arguments.ArgumentType;
@@ -21,29 +23,53 @@ import net.minestom.server.timer.TaskSchedule;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URISyntaxException;
-import java.nio.file.Path;
+import java.util.HashSet;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
+import static at.nopro.phasmo.Configuration.config;
+
 public class Main {
-    public static void main(String[] args) throws IOException, URISyntaxException {
-        VirtualClient virtualClient = new VirtualClient(new File("/home/noah/Documents/privat/hmcTest"));
-        //virtualClient.start();
+    public static void main(String[] args) throws IOException {
+        Configuration.parseOrCreate();
 
-        CameraManager.setCamPlayerName("CAM");
-        CameraManager.setCamPlayerUUID(UUID.fromString("22689332-a7fd-4191-9600-b0fe1135ee34"));
+        VirtualClient virtualClient = new VirtualClient(new File(config.camera.headlessmcPath));
+        if (config.camera.enabled) {
+            virtualClient.start();
+        }
 
-        MinecraftServer minecraftServer = MinecraftServer.init(/*new Auth.Online()*/);
-        //MojangAuthWithExceptions auth = new MojangAuthWithExceptions();
+        CameraManager.setCamPlayerName(config.camera.playerName);
+        CameraManager.setCamPlayerUUID(UUID.fromString(config.camera.playerUuid));
 
-        MinecraftServer.getCommandManager().register(new Test());
-        MinecraftServer.getCommandManager().register(new Test2());
-        MinecraftServer.getCommandManager().register(new Test3());
-        MinecraftServer.getCommandManager().register(new Test4());
+        Auth auth;
+        if ("offline".equals(config.mcServer.auth)) {
+            auth = new Auth.Offline();
+        } else if ("mojang".equals(config.mcServer.auth)) {
+            auth = new Auth.Online();
+            new MojangAuthWithExceptions();
+        } else if ("velocity".equals(config.mcServer.auth)) {
+            auth = new Auth.Velocity(config.mcServer.secret);
+            //TODO find a way to whitelist the cam player
+        } else if ("bungee".equals(config.mcServer.auth)) {
+            auth = new Auth.Bungee(new HashSet<>(List.of(config.mcServer.secret.split(" "))));
+            //TODO find a way to whitelist the cam player
+        } else {
+            System.err.println("invalid auth value. check your config!");
+            System.exit(1);
+            return;
+        }
 
-        ResourcePackProvider.initFromDirectory("0.0.0.0", 28080, Path.of("packdir"));
+        MinecraftServer minecraftServer = MinecraftServer.init(auth);
 
+        if (config.devMode) {
+            MinecraftServer.getCommandManager().register(new Test());
+            MinecraftServer.getCommandManager().register(new Test2());
+            MinecraftServer.getCommandManager().register(new Test3());
+            MinecraftServer.getCommandManager().register(new Test4());
+        }
+
+        ResourcePackProvider.init();
         Listeners.init();
         ItemTracker.init();
 
@@ -55,7 +81,9 @@ public class Main {
         EquipmentManager.register(new DOTS_Projector());
 
         GameManager.createGame("default", Maps.TANGLEWOOD_DRIVE);
-        //VoiceChat voiceChat = VoiceChat.builder("0.0.0.0",25565).enable(); Re enable after new version releases
+        if (config.voicechat.enabled) {
+            VoiceChat voiceChat = VoiceChat.builder(config.voicechat.host, config.voicechat.port).enable(); //Re enable after new version releases
+        }
 
         MinecraftServer.getSchedulerManager().submitTask(() -> {
             for (Player player : MinecraftServer.getConnectionManager().getOnlinePlayers()) {
@@ -76,7 +104,7 @@ public class Main {
             return TaskSchedule.nextTick();
         });
 
-        minecraftServer.start("0.0.0.0", 25565);
+        minecraftServer.start(config.mcServer.host, config.mcServer.port);
     }
 
     private static class Test4 extends Command {

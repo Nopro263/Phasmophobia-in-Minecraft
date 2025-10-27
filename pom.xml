@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>at.nopro</groupId>
-    <artifactId>minestomTest</artifactId>
+    <artifactId>PhasmoInMc</artifactId>
     <version>1.0.0</version>
 
     <properties>
@@ -46,14 +46,14 @@
             <version>2.0.17</version>
         </dependency>
         <dependency>
-            <groupId>de.articdive</groupId>
-            <artifactId>jnoise-pipeline</artifactId>
-            <version>4.1.0</version>
-        </dependency>
-        <dependency>
             <groupId>dev.lu15</groupId>
             <artifactId>simple-voice-chat-minestom</artifactId>
             <version>0.2.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.yaml</groupId>
+            <artifactId>snakeyaml</artifactId>
+            <version>2.2</version>
         </dependency>
     </dependencies>
 

@@ -20,11 +20,21 @@ import org.jetbrains.annotations.NotNull;
 import java.util.UUID;
 import java.util.function.Consumer;
 
+import static at.nopro.phasmo.Configuration.config;
+
 public class Listeners {
     public static void init() {
-        addListener(AsyncPlayerPreLoginEvent.class, asyncPlayerPreLoginEvent -> {
-            asyncPlayerPreLoginEvent.setGameProfile(new GameProfile(UUID.randomUUID(), asyncPlayerPreLoginEvent.getGameProfile().name()));
-        });
+        if (config.devMode) {
+            addListener(AsyncPlayerPreLoginEvent.class, asyncPlayerPreLoginEvent -> {
+                UUID uuid;
+                if (asyncPlayerPreLoginEvent.getGameProfile().uuid().equals(CameraManager.getCamPlayerUUID())) {
+                    uuid = asyncPlayerPreLoginEvent.getGameProfile().uuid();
+                } else {
+                    uuid = UUID.randomUUID();
+                }
+                asyncPlayerPreLoginEvent.setGameProfile(new GameProfile(uuid, asyncPlayerPreLoginEvent.getGameProfile().name()));
+            });
+        }
         addListener(AsyncPlayerConfigurationEvent.class, event -> {
             GameContext context = GameManager.getGame("default");
 

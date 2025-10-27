@@ -23,33 +23,53 @@ import java.util.concurrent.Executors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import static at.nopro.phasmo.Configuration.config;
+
+
 public class ResourcePackProvider implements HttpHandler {
-    private final String ip;
-    private final int port;
+    private final String bindIp;
+    private final int bindPort;
+    private final String externalIp;
+    private final int externalPort;
+    private final boolean externalHttps;
     private final String path;
+
     private final ByteArrayOutputStream rawPackData;
     private HttpServer httpServer;
     private ResourcePackRequest resourcePack;
     private ResourcePackInfo packInfo;
 
-    private ResourcePackProvider(String ip, int port, String path) {
-        this.ip = ip;
-        this.port = port;
+    private ResourcePackProvider(String bindIp, int bindPort, String externalIp, int externalPort, boolean externalHttps, String path) {
+        this.bindIp = bindIp;
+        this.bindPort = bindPort;
+        this.externalIp = externalIp;
+        this.externalPort = externalPort;
+        this.externalHttps = externalHttps;
         this.path = path;
         this.rawPackData = new ByteArrayOutputStream();
     }
 
-    public static ResourcePackProvider initFromFile(String ip, int port, Path file) throws IOException, URISyntaxException {
-        ResourcePackProvider provider = new ResourcePackProvider(ip, port, "/pack.zip");
-        provider.fromFile(file);
-        provider.startServer();
-        provider.initResourcePack();
-        return provider;
-    }
+    public static ResourcePackProvider init() throws IOException {
+        ResourcePackProvider provider = new ResourcePackProvider(
+                config.resourcepackServer.bind.host,
+                config.resourcepackServer.bind.port,
+                config.resourcepackServer.access.host,
+                config.resourcepackServer.access.port,
+                config.resourcepackServer.access.https,
+                "/pack.zip"
+        );
 
-    public static ResourcePackProvider initFromDirectory(String ip, int port, Path directory) throws IOException, URISyntaxException {
-        ResourcePackProvider provider = new ResourcePackProvider(ip, port, "/pack.zip");
-        provider.fromDirectory(directory);
+        if (config.resourcepackServer.bind.path.endsWith(".zip")) {
+            provider.fromFile(Path.of(config.resourcepackServer.bind.path));
+        } else {
+            Path path = Path.of(config.resourcepackServer.bind.path);
+            if (!path.resolve("pack.mcmeta").toFile().exists()) {
+                System.err.println("The specified resource pack directory does not contain a pack.mcmeta");
+                System.exit(1);
+                return null;
+            }
+            provider.fromDirectory(path);
+        }
         provider.startServer();
         provider.initResourcePack();
         return provider;
@@ -77,16 +97,42 @@ public class ResourcePackProvider implements HttpHandler {
         }
     }
 
+    private void startServer() throws IOException {
+        httpServer = HttpServer.create(new InetSocketAddress(bindIp, bindPort), 0);
+        httpServer.createContext(path, this);
+        httpServer.setExecutor(Executors.newVirtualThreadPerTaskExecutor());
+        httpServer.start();
+    }
+
     private void initResourcePack() {
         MinecraftServer.getGlobalEventHandler().addListener(PlayerLoadedEvent.class, (event) -> {
+            String host;
+            if ("0.0.0.0".equals(externalIp)) {
+                host = event.getPlayer().getPlayerConnection().getServerAddress();
+            } else {
+                host = externalIp;
+            }
+
+            URI uri;
             try {
-                packInfo = ResourcePackInfo.resourcePackInfo()
-                        .id(UUID.fromString("f40db609-a06b-4238-b06f-387672243b6e"))
-                        .uri(new URI("http://" + event.getPlayer().getPlayerConnection().getServerAddress() + ":" + port + path))
-                        .computeHashAndBuild().join();
+                uri = new URI(
+                        externalHttps ? "https" : "http",
+                        null,
+                        host,
+                        externalPort,
+                        path,
+                        null,
+                        null
+                );
             } catch (URISyntaxException e) {
                 throw new RuntimeException(e);
             }
+
+            packInfo = ResourcePackInfo.resourcePackInfo()
+                    .id(UUID.fromString("f40db609-a06b-4238-b06f-387672243b6e"))
+                    .uri(uri)
+                    .computeHashAndBuild().join();
+
             resourcePack = ResourcePackRequest.resourcePackRequest()
                     .packs(packInfo)
                     .prompt(Component.text("use this resource pack"))
@@ -97,13 +143,6 @@ public class ResourcePackProvider implements HttpHandler {
         });
 
         MinecraftServer.getConnectionManager().getOnlinePlayers().forEach(p -> p.sendResourcePacks(resourcePack));
-    }
-
-    private void startServer() throws IOException {
-        httpServer = HttpServer.create(new InetSocketAddress("0.0.0.0", port), 0);
-        httpServer.createContext(path, this);
-        httpServer.setExecutor(Executors.newVirtualThreadPerTaskExecutor());
-        httpServer.start();
     }
 
     private void fromFile(Path path) throws IOException {
