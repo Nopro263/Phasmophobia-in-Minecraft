@@ -7,39 +7,25 @@ import at.nopro.phasmo.content.ghost.TestGhost;
 import at.nopro.phasmo.entity.ItemEntity;
 import at.nopro.phasmo.entity.ai.PathCache;
 import at.nopro.phasmo.entity.PhasmoEntity;
-import at.nopro.phasmo.event.GhostEvent;
-import at.nopro.phasmo.event.PhasmoEvent;
-import at.nopro.phasmo.event.SanityDrainEvent;
-import at.nopro.phasmo.event.TemperatureEvent;
-import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextColor;
+import at.nopro.phasmo.event.*;
+import at.nopro.phasmo.lighting.PhasmoChunk;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.coordinate.CoordConversion;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.Entity;
-import net.minestom.server.entity.GameMode;
 import net.minestom.server.entity.Player;
 import net.minestom.server.event.Event;
-import net.minestom.server.event.EventBinding;
 import net.minestom.server.event.EventFilter;
 import net.minestom.server.event.EventNode;
 import net.minestom.server.event.entity.EntityAttackEvent;
 import net.minestom.server.event.entity.EntityTeleportEvent;
-import net.minestom.server.event.player.PlayerBlockInteractEvent;
-import net.minestom.server.event.player.PlayerChangeHeldSlotEvent;
-import net.minestom.server.event.player.PlayerMoveEvent;
-import net.minestom.server.event.player.PlayerSwapItemEvent;
+import net.minestom.server.event.instance.InstanceTickEvent;
+import net.minestom.server.event.player.*;
 import net.minestom.server.event.trait.EntityEvent;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.InstanceContainer;
 import net.minestom.server.instance.LightingChunk;
-import net.minestom.server.tag.Tag;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.function.Consumer;
 
 public class GameContext {
     private final MapContext mapContext;
@@ -73,7 +59,7 @@ public class GameContext {
             e = this.roomManager.parseEntity(e);
             return e;
         }));
-        instance.setChunkSupplier(LightingChunk::new);
+        instance.setChunkSupplier(PhasmoChunk::new);
         instance.setTimeRate(0);
 
         instance.setTime(mapContext.time());
@@ -120,12 +106,15 @@ public class GameContext {
 
         listenToGlobalEvent(GhostEvent.class);
         listenToGlobalEvent(TemperatureEvent.class);
+        listenToGlobalEvent(InstanceTickEvent.class);
 
         listenToEntityAttackEvent(EntityAttackEvent.class);
         listenToEntityEvent(EntityTeleportEvent.class);
         listenToEntityEvent(PlayerMoveEvent.class);
         listenToEntityEvent(PlayerBlockInteractEvent.class);
         listenToEntityEvent(PlayerChangeHeldSlotEvent.class);
+        listenToEntityEvent(AfterDropEvent.class);
+        listenToEntityEvent(AfterPickupEvent.class);
 
         this.entity = new TestGhost(this);
         this.entity.setInstance(instance, new Pos(-8, -42, 3));
@@ -148,6 +137,12 @@ public class GameContext {
             ItemReference ref;
             if(event.getEntity() instanceof Player player) {
                 ref = ItemTracker.track(player, player.getHeldSlot());
+
+                ItemReference ref2 = ItemTracker.track(player, 45);
+                Equipment equipment2 = EquipmentManager.getEquipment(ref2.get());
+                if(equipment2 != null) {
+                    equipment2.handle(event, event.getEntity(), ref2);
+                }
             } else if (ItemEntity.get(event.getEntity()) instanceof ItemEntity itemEntity) {
                 ref = ItemTracker.track(itemEntity);
             } else {
@@ -185,10 +180,17 @@ public class GameContext {
                 ItemReference ref = ItemTracker.track(player, player.getHeldSlot());
 
                 Equipment equipment = EquipmentManager.getEquipment(ref.get());
-                if(equipment == null) {
-                    continue;
+                if(equipment != null) {
+                    equipment.handle(event, player, ref);
                 }
-                equipment.handle(event, player, ref);
+
+                ref = ItemTracker.track(player, -1);
+
+                equipment = EquipmentManager.getEquipment(ref.get());
+                if(equipment != null) {
+                    equipment.handle(event, player, ref);
+                }
+
             }
             for(Entity entity : instance.getEntities()) {
                 if(!(entity instanceof ItemEntity itemEntity)) {

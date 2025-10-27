@@ -3,6 +3,7 @@ package at.nopro.phasmo.content.equipment;
 import at.nopro.phasmo.content.ItemProvider;
 import at.nopro.phasmo.event.AfterDropEvent;
 import at.nopro.phasmo.event.AfterPickupEvent;
+import at.nopro.phasmo.event.DOTSEvent;
 import at.nopro.phasmo.game.GameContext;
 import at.nopro.phasmo.game.GameManager;
 import at.nopro.phasmo.game.ItemReference;
@@ -14,14 +15,15 @@ import net.minestom.server.event.Event;
 import net.minestom.server.event.instance.InstanceTickEvent;
 import net.minestom.server.event.player.PlayerChangeHeldSlotEvent;
 import net.minestom.server.event.player.PlayerMoveEvent;
-import net.minestom.server.event.player.PlayerSwapItemEvent;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.item.ItemStack;
 import net.minestom.server.network.packet.server.play.BlockChangePacket;
+import net.minestom.server.network.packet.server.play.ParticlePacket;
+import net.minestom.server.particle.Particle;
 import net.minestom.server.utils.block.BlockIterator;
 
-public class Flashlight implements Equipment { // TODO rewrite lighting engine to allow directional light sources
+public class DOTS_Projector implements Equipment {
     @Override
     public void handle(Event event, Entity en, ItemReference r) {
         switch (event) {
@@ -38,7 +40,7 @@ public class Flashlight implements Equipment { // TODO rewrite lighting engine t
 
     @Override
     public ItemStack getDefault() {
-        return ItemProvider.getFlashlight();
+        return ItemProvider.getDOTSProjector();
     }
 
     private void handle(PlayerMoveEvent moveEvent, Entity entity, ItemReference r) {
@@ -79,14 +81,8 @@ public class Flashlight implements Equipment { // TODO rewrite lighting engine t
             if(instance.getBlock(b).isAir()) {
                 prev = b;
                 distance++;
-                if(distance > 5) {
-                    Block block;
-                    if(revert) {
-                        block = Block.AIR;
-                    } else {
-                        block = Block.LIGHT.withProperty("level",Math.max(dist-distance, 0) + "");
-                    }
-                    lightBlock(gameContext, instance, prev, block);
+                if(distance > 3) {
+                    lightBlock(gameContext, instance, prev);
                 }
             } else {
                 if(prev != null) {
@@ -97,20 +93,14 @@ public class Flashlight implements Equipment { // TODO rewrite lighting engine t
             b = bi.next();
         }
 
-        if(distance <= 5 && prev != null) {
-            Block block;
-            if(revert) {
-                block = Block.AIR;
-            } else {
-                block = Block.LIGHT.withProperty("level",Math.max(dist-distance, 0) + "");
-            }
-            lightBlock(gameContext, instance, prev, block);
+        if(distance <= 3 && prev != null) {
+            lightBlock(gameContext, instance, prev);
         }
     }
 
-    private void lightBlock(GameContext gameContext, Instance instance, Point prev, Block block) {
-        for(Player player : instance.getPlayers()) {
-            player.sendPacket(new BlockChangePacket(prev, block));
-        }
+    private void lightBlock(GameContext gameContext, Instance instance, Point prev) {
+        instance.sendGroupedPacket(new ParticlePacket(Particle.HAPPY_VILLAGER, prev, new Pos(0.5,0.02,0.5), 10,4));
+
+        gameContext.getEventNode().call(new DOTSEvent(gameContext, prev));
     }
 }

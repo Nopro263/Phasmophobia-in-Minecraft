@@ -66,4 +66,13 @@ public class ItemProvider {
                 .customName(Component.text("Video Camera"))
                 .build();
     }
+
+    public static ItemStack getDOTSProjector() {
+        return ItemStack.builder(Material.OXIDIZED_COPPER_LANTERN)
+                .itemModel("minecraft:oxidized_copper_lantern")
+                .set(DataComponents.MAX_STACK_SIZE, 1)
+                .set(EquipmentManager.EQUIPMENT_TAG, EquipmentManager.get(DOTS_Projector.class))
+                .customName(Component.text("DOTS Projector"))
+                .build();
+    }
 }

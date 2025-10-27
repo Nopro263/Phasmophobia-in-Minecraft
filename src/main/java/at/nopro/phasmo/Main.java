@@ -58,6 +58,7 @@ public class Main {
         MinecraftServer.getCommandManager().register(new Test());
         MinecraftServer.getCommandManager().register(new Test2());
         MinecraftServer.getCommandManager().register(new Test3());
+        MinecraftServer.getCommandManager().register(new Test4());
 
         ResourcePackProvider.initFromDirectory("0.0.0.0", 28080, Path.of("packdir"));
 
@@ -69,6 +70,7 @@ public class Main {
         EquipmentManager.register(new Handheld_Camera());
         EquipmentManager.register(new Thermometer());
         EquipmentManager.register(new Flashlight());
+        EquipmentManager.register(new DOTS_Projector());
 
         GameManager.createGame("default", Maps.TANGLEWOOD_DRIVE);
         //VoiceChat voiceChat = VoiceChat.builder("0.0.0.0",25565).enable(); Re enable after new version releases
@@ -95,6 +97,19 @@ public class Main {
         minecraftServer.start("0.0.0.0", 25565);
     }
 
+    private static class Test4 extends Command {
+
+        public Test4() {
+            super("toggleGhost");
+
+            addSyntax((sender, ctx) -> {
+                if(sender instanceof Player player) {
+                    GameContext g = GameManager.getGame(player.getInstance());
+                    g.entity.setAutoViewable(!g.entity.isAutoViewable());
+                }
+            });
+        }
+    }
 
     private static class Test3 extends Command {
 

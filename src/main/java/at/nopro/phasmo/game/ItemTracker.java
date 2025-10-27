@@ -2,6 +2,8 @@ package at.nopro.phasmo.game;
 
 import at.nopro.phasmo.Pair;
 import at.nopro.phasmo.entity.ItemEntity;
+import at.nopro.phasmo.event.AfterDropEvent;
+import at.nopro.phasmo.event.AfterPickupEvent;
 import at.nopro.phasmo.event.PlaceEquipmentEvent;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.entity.Entity;
@@ -62,6 +64,9 @@ public class ItemTracker {
 
                 player.getInventory().setItemStack(slot, itemStack);
 
+                GameContext gameContext = GameManager.getGame(event.getInstance());
+                gameContext.getEventNode().call(new AfterPickupEvent(itemEntity, gameContext, player));
+
                 vehicle.remove();
                 entity.remove();
             }
@@ -102,6 +107,8 @@ public class ItemTracker {
         }
 
         itemEntity.setInstance(event.getInstance(), player.getPosition().withPitch(0));
+        GameContext gameContext = GameManager.getGame(event.getInstance());
+        gameContext.getEventNode().call(new AfterDropEvent(itemEntity, gameContext, player));
     }
 
     private static void handleSwap(PlayerSwapItemEvent event) {

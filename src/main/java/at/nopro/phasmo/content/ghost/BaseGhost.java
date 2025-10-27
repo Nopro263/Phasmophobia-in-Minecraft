@@ -1,16 +1,20 @@
 package at.nopro.phasmo.content.ghost;
 
 import at.nopro.phasmo.entity.PhasmoEntity;
+import at.nopro.phasmo.event.DOTSEvent;
 import at.nopro.phasmo.event.GhostEvent;
 import at.nopro.phasmo.event.TemperatureEvent;
 import at.nopro.phasmo.game.GameContext;
 import net.minestom.server.entity.EntityType;
+import net.minestom.server.timer.TaskSchedule;
 
 import java.util.Random;
 
 public class BaseGhost extends PhasmoEntity {
     public BaseGhost(EntityType entityType, GameContext gameContext) {
         super(entityType, gameContext);
+
+        setAutoViewable(false);
     }
 
     protected void activateEMF5() {
@@ -30,6 +34,25 @@ public class BaseGhost extends PhasmoEntity {
             if(getRoom() == event.getRoom()) {
                 event.setTemperature(-10);
             }
+        });
+    }
+
+    protected void activateDOTS() {
+        gameContext.getEventNode().addListener(DOTSEvent.class, (event) -> {
+            if(event.getPoint().sameBlock(getPosition()) || event.getPoint().sameBlock(getPosition().add(0,1,0))) {
+                showWhenInDOTS();
+            }
+        });
+    }
+
+
+    private void showWhenInDOTS() {
+        setAutoViewable(true);
+        gameContext.getScheduler().run(this.hashCode() + "GhostDOTS", (first) -> {
+            if(first) return TaskSchedule.seconds(2);
+
+            setAutoViewable(false);
+            return TaskSchedule.stop();
         });
     }
 }
