@@ -15,4 +15,5 @@ public record MapContext(
         List<Integer> validLevels,
         Point nvButtonVan,
         Direction mapUpIsDirection
-) {}
+) {
+}

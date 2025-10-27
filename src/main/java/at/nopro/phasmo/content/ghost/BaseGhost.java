@@ -20,9 +20,9 @@ public class BaseGhost extends PhasmoEntity {
     protected void activateEMF5() {
         Random emfRandom = new Random();
         gameContext.getEventNode().addListener(GhostEvent.class, (event) -> {
-            if(event.getActionType() == GhostEvent.ActionType.INTERACT ||
-                event.getActionType() == GhostEvent.ActionType.THROW) {
-                if(emfRandom.nextBoolean()) {
+            if (event.getActionType() == GhostEvent.ActionType.INTERACT ||
+                    event.getActionType() == GhostEvent.ActionType.THROW) {
+                if (emfRandom.nextBoolean()) {
                     event.setActionType(GhostEvent.ActionType.EMF_5);
                 }
             }
@@ -31,7 +31,7 @@ public class BaseGhost extends PhasmoEntity {
 
     protected void activateFreezing() {
         gameContext.getEventNode().addListener(TemperatureEvent.class, (event) -> {
-            if(getRoom() == event.getRoom()) {
+            if (getRoom() == event.getRoom()) {
                 event.setTemperature(-10);
             }
         });
@@ -39,7 +39,7 @@ public class BaseGhost extends PhasmoEntity {
 
     protected void activateDOTS() {
         gameContext.getEventNode().addListener(DOTSEvent.class, (event) -> {
-            if(event.getPoint().sameBlock(getPosition()) || event.getPoint().sameBlock(getPosition().add(0,1,0))) {
+            if (event.getPoint().sameBlock(getPosition()) || event.getPoint().sameBlock(getPosition().add(0, 1, 0))) {
                 showWhenInDOTS();
             }
         });
@@ -49,7 +49,7 @@ public class BaseGhost extends PhasmoEntity {
     private void showWhenInDOTS() {
         setAutoViewable(true);
         gameContext.getScheduler().run(this.hashCode() + "GhostDOTS", (first) -> {
-            if(first) return TaskSchedule.seconds(2);
+            if (first) return TaskSchedule.seconds(2);
 
             setAutoViewable(false);
             return TaskSchedule.stop();

@@ -19,14 +19,15 @@ public class EquipmentManager {
         inverseEquipmentMap.put(equipment, name);
     }
 
+    public static Equipment get(Class<? extends Equipment> clazz) {
+        return getInternal(clazz.getSimpleName());
+    }
+
     public static Equipment getInternal(String name) {
-        if(!equipmentMap.containsKey(name)) {
+        if (!equipmentMap.containsKey(name)) {
             throw new RuntimeException("Unknown Equipment " + name);
         }
         return equipmentMap.get(name);
-    }
-    public static Equipment get(Class<? extends Equipment> clazz) {
-        return getInternal(clazz.getSimpleName());
     }
 
     public static @Nullable Equipment getEquipment(ItemStack itemStack) {

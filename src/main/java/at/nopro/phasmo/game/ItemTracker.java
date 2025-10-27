@@ -24,8 +24,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ItemTracker {
-    private static Map<Pair<Player, Integer>, ItemReference> playerSlotMap = new HashMap<>();
-    private static Map<Entity, ItemReference> itemMap = new HashMap<>();
+    private static final Map<Pair<Player, Integer>, ItemReference> playerSlotMap = new HashMap<>();
+    private static final Map<Entity, ItemReference> itemMap = new HashMap<>();
 
     public static void init() {
         EventNode<@NotNull Event> node = EventNode.all("phasmo-monitor");
@@ -41,20 +41,92 @@ public class ItemTracker {
         node.addListener(InventoryItemChangeEvent.class, ItemTracker::handleInventoryItemChange);
     }
 
+    private static void handleDrop(ItemDropEvent event) {
+        final Player player = event.getPlayer();
+        int mainHandSlot = player.getHeldSlot();
+        Pair<Player, Integer> mainHandPair = new Pair<>(player, mainHandSlot);
+        ItemReference mainHandTracker = playerSlotMap.get(mainHandPair);
+
+        ItemEntity itemEntity = new ItemEntity(event.getItemStack());
+
+        if (mainHandTracker != null) {
+            player.setItemInMainHand(ItemStack.AIR);
+            mainHandTracker.setAsEntity(itemEntity);
+            playerSlotMap.remove(mainHandPair);
+            itemMap.put(itemEntity, mainHandTracker);
+        }
+
+        itemEntity.setInstance(event.getInstance(), player.getPosition().withPitch(0));
+        GameContext gameContext = GameManager.getGame(event.getInstance());
+        gameContext.getEventNode().call(new AfterDropEvent(itemEntity, gameContext, player));
+    }
+
+    private static void handlePlace(PlaceEquipmentEvent event) {
+        final Player player = (Player) event.getItemReference().getContainingEntity(); // if this errors, how does a non-player place equipment?
+        int mainHandSlot = player.getHeldSlot();
+        Pair<Player, Integer> mainHandPair = new Pair<>(player, mainHandSlot);
+        ItemReference mainHandTracker = playerSlotMap.get(mainHandPair);
+
+        ItemEntity itemEntity = new ItemEntity(event.getItemReference().get());
+
+        if (mainHandTracker != null) {
+            player.setItemInMainHand(ItemStack.AIR);
+            mainHandTracker.setAsEntity(itemEntity);
+            playerSlotMap.remove(mainHandPair);
+            itemMap.put(itemEntity, mainHandTracker);
+        }
+
+        itemEntity.setInstance(event.getGameContext().getInstance(), event.getPos());
+    }
+
+    private static void handleSwap(PlayerSwapItemEvent event) {
+        if (event.isCancelled()) return;
+
+        final Player player = event.getPlayer();
+
+        int mainHandSlot = player.getHeldSlot();
+        int offHandSlot = 45;
+        swapInInventory(player, mainHandSlot, offHandSlot);
+    }
+
+    private static void swapInInventory(Player player, int slot1, int slot2) {
+        Pair<Player, Integer> mainHandPair = new Pair<>(player, slot1);
+        Pair<Player, Integer> offHandPair = new Pair<>(player, slot2);
+
+        ItemReference mainHandTracker = playerSlotMap.get(mainHandPair);
+        ItemReference offHandTracker = playerSlotMap.get(offHandPair);
+
+        if (mainHandTracker != null) {
+            mainHandTracker.setInPlayerInventory(player, slot2);
+            if (offHandTracker == null) {
+                playerSlotMap.remove(mainHandPair);
+            }
+            playerSlotMap.put(offHandPair, mainHandTracker);
+        }
+
+        if (offHandTracker != null) {
+            offHandTracker.setInPlayerInventory(player, slot1);
+            if (mainHandTracker == null) {
+                playerSlotMap.remove(offHandPair);
+            }
+            playerSlotMap.put(mainHandPair, offHandTracker);
+        }
+    }
+
     private static void handlePickUp(PlayerPickEntityEvent event) {
         Entity entity = event.getTarget();
-        if(entity == null) return;
+        if (entity == null) return;
 
         Entity vehicle = entity.getVehicle();
-        if(vehicle != null) {
+        if (vehicle != null) {
             if (vehicle instanceof ItemEntity itemEntity) {
                 ItemStack itemStack = itemEntity.getItem();
                 final Player player = event.getPlayer();
                 int slot = player.getHeldSlot();
 
-                if(!player.getInventory().getItemStack(slot).isAir()) return;
+                if (!player.getInventory().getItemStack(slot).isAir()) return;
 
-                if(itemMap.containsKey(itemEntity)) {
+                if (itemMap.containsKey(itemEntity)) {
                     ItemReference entityTracker = itemMap.remove(itemEntity);
                     entityTracker.setInPlayerInventory(player, slot);
 
@@ -73,56 +145,8 @@ public class ItemTracker {
         }
     }
 
-    private static void handlePlace(PlaceEquipmentEvent event) {
-        final Player player = (Player) event.getItemReference().getContainingEntity(); // if this errors, how does a non-player place equipment?
-        int mainHandSlot = player.getHeldSlot();
-        Pair<Player, Integer> mainHandPair = new Pair<>(player, mainHandSlot);
-        ItemReference mainHandTracker = playerSlotMap.get(mainHandPair);
-
-        ItemEntity itemEntity = new ItemEntity(event.getItemReference().get());
-
-        if(mainHandTracker != null) {
-            player.setItemInMainHand(ItemStack.AIR);
-            mainHandTracker.setAsEntity(itemEntity);
-            playerSlotMap.remove(mainHandPair);
-            itemMap.put(itemEntity, mainHandTracker);
-        }
-
-        itemEntity.setInstance(event.getGameContext().getInstance(), event.getPos());
-    }
-
-    private static void handleDrop(ItemDropEvent event) {
-        final Player player = event.getPlayer();
-        int mainHandSlot = player.getHeldSlot();
-        Pair<Player, Integer> mainHandPair = new Pair<>(player, mainHandSlot);
-        ItemReference mainHandTracker = playerSlotMap.get(mainHandPair);
-
-        ItemEntity itemEntity = new ItemEntity(event.getItemStack());
-
-        if(mainHandTracker != null) {
-            player.setItemInMainHand(ItemStack.AIR);
-            mainHandTracker.setAsEntity(itemEntity);
-            playerSlotMap.remove(mainHandPair);
-            itemMap.put(itemEntity, mainHandTracker);
-        }
-
-        itemEntity.setInstance(event.getInstance(), player.getPosition().withPitch(0));
-        GameContext gameContext = GameManager.getGame(event.getInstance());
-        gameContext.getEventNode().call(new AfterDropEvent(itemEntity, gameContext, player));
-    }
-
-    private static void handleSwap(PlayerSwapItemEvent event) {
-        if(event.isCancelled()) return;
-
-        final Player player = event.getPlayer();
-
-        int mainHandSlot = player.getHeldSlot();
-        int offHandSlot = 45;
-        swapInInventory(player,mainHandSlot, offHandSlot);
-    }
-
     private static void handleInventoryClick(InventoryPreClickEvent event) {
-        if(event.getClick() instanceof Click.Left || event.getClick() instanceof Click.Right) {
+        if (event.getClick() instanceof Click.Left || event.getClick() instanceof Click.Right) {
 
         } else {
             event.setCancelled(true);
@@ -130,16 +154,20 @@ public class ItemTracker {
         }
     }
 
+    private static void handleInventoryItemChange(InventoryItemChangeEvent event) {
+
+    }
+
     private static void handleInventoryClick(InventoryClickEvent event) {
         int slotFrom = 99;
         int slotTo = 99;
 
-        if(event.getCursorItem().isAir() && !event.getClickedItem().isAir()) {
+        if (event.getCursorItem().isAir() && !event.getClickedItem().isAir()) {
             slotTo = -1;
             slotFrom = event.getSlot();
         }
 
-        if(!event.getCursorItem().isAir() && event.getClickedItem().isAir()) {
+        if (!event.getCursorItem().isAir() && event.getClickedItem().isAir()) {
             slotTo = event.getSlot();
             slotFrom = -1;
         }
@@ -147,37 +175,9 @@ public class ItemTracker {
         swapInInventory(event.getPlayer(), slotFrom, slotTo);
     }
 
-    private static void handleInventoryItemChange(InventoryItemChangeEvent event) {
-
-    }
-
-    private static void swapInInventory(Player player, int slot1, int slot2) {
-        Pair<Player, Integer> mainHandPair = new Pair<>(player, slot1);
-        Pair<Player, Integer> offHandPair = new Pair<>(player, slot2);
-
-        ItemReference mainHandTracker = playerSlotMap.get(mainHandPair);
-        ItemReference offHandTracker = playerSlotMap.get(offHandPair);
-
-        if(mainHandTracker != null){
-            mainHandTracker.setInPlayerInventory(player, slot2);
-            if(offHandTracker == null) {
-                playerSlotMap.remove(mainHandPair);
-            }
-            playerSlotMap.put(offHandPair, mainHandTracker);
-        }
-
-        if(offHandTracker != null){
-            offHandTracker.setInPlayerInventory(player, slot1);
-            if(mainHandTracker == null) {
-                playerSlotMap.remove(offHandPair);
-            }
-            playerSlotMap.put(mainHandPair, offHandTracker);
-        }
-    }
-
     public static ItemReference track(Player player, int slot) {
         Pair<Player, Integer> pair = new Pair<>(player, slot);
-        if(playerSlotMap.containsKey(pair)) {
+        if (playerSlotMap.containsKey(pair)) {
             return playerSlotMap.get(pair);
         }
         ItemReference ref = new ItemReference();
@@ -187,7 +187,7 @@ public class ItemTracker {
     }
 
     public static ItemReference track(ItemEntity itemEntity) {
-        if(itemMap.containsKey(itemEntity)) {
+        if (itemMap.containsKey(itemEntity)) {
             return itemMap.get(itemEntity);
         }
         ItemReference ref = new ItemReference();

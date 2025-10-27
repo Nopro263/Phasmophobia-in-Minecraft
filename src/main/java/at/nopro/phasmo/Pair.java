@@ -1,7 +1,7 @@
 package at.nopro.phasmo;
 
 // https://stackoverflow.com/a/521235
-public class Pair<L,R> {
+public class Pair<L, R> {
     private final L left;
     private final R right;
 
@@ -13,18 +13,24 @@ public class Pair<L,R> {
         this.right = right;
     }
 
-    public L getLeft() { return left; }
-    public R getRight() { return right; }
-
     @Override
-    public int hashCode() { return left.hashCode() ^ right.hashCode(); }
+    public int hashCode() {
+        return left.hashCode() ^ right.hashCode();
+    }
 
     @Override
     public boolean equals(Object o) {
-        if (!(o instanceof Pair)) return false;
-        Pair pairo = (Pair) o;
+        if (!( o instanceof Pair pairo )) return false;
         return this.left.equals(pairo.getLeft()) &&
                 this.right.equals(pairo.getRight());
+    }
+
+    public L getLeft() {
+        return left;
+    }
+
+    public R getRight() {
+        return right;
     }
 
 }

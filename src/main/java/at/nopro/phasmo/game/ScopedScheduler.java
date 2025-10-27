@@ -12,11 +12,17 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class ScopedScheduler {
-    private Map<String, Task> map = new HashMap<>();
+    private final Map<String, Task> map = new HashMap<>();
 
     public void run(String id, Supplier<TaskSchedule> supplier) {
         tryCancel(id);
         map.put(id, MinecraftServer.getSchedulerManager().submitTask(supplier));
+    }
+
+    public void tryCancel(String id) {
+        if (!map.containsKey(id)) return;
+
+        map.get(id).cancel();
     }
 
     public void run(String id, Function<Boolean, TaskSchedule> supplier) {
@@ -25,15 +31,9 @@ public class ScopedScheduler {
         map.put(id, MinecraftServer.getSchedulerManager().submitTask(() -> supplier.apply(isFirst.getAndSet(false))));
     }
 
-    public void tryCancel(String id) {
-        if(!map.containsKey(id)) return;
-
-        map.get(id).cancel();
-    }
-
     @ApiStatus.Internal
     public void stop() {
-        for(Map.Entry<String,Task> e : map.entrySet()) {
+        for (Map.Entry<String, Task> e : map.entrySet()) {
             e.getValue().cancel();
         }
     }

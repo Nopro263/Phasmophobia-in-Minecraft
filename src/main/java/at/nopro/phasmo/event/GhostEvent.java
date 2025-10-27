@@ -5,9 +5,9 @@ import net.minestom.server.coordinate.Point;
 
 public class GhostEvent implements PhasmoEvent {
     private final GameContext gameContext;
-    private Point origin;
-    private ActionType actionType;
+    private final Point origin;
     private final ActionType originalActionType;
+    private ActionType actionType;
 
     public GhostEvent(GameContext gameContext, ActionType actionType, Point origin) {
         this.gameContext = gameContext;
@@ -28,19 +28,19 @@ public class GhostEvent implements PhasmoEvent {
     public int getWeightedEmfLevel(Point point) {
         double distsqrd = point.distance(origin);
         final int SCALE = 4;
-        return Math.min(Math.max((int) ((((actionType.emf + 1) * SCALE) - distsqrd) / SCALE), 0), 5);
+        return Math.min(Math.max((int) ( ( ( ( actionType.emf + 1 ) * SCALE ) - distsqrd ) / SCALE ), 0), 5);
     }
 
     public ActionType getActionType() {
         return actionType;
     }
 
-    public ActionType getOriginalActionType() {
-        return originalActionType;
-    }
-
     public void setActionType(ActionType actionType) {
         this.actionType = actionType;
+    }
+
+    public ActionType getOriginalActionType() {
+        return originalActionType;
     }
 
     public Point getOrigin() {
@@ -54,6 +54,7 @@ public class GhostEvent implements PhasmoEvent {
         EMF_5(5);
 
         private final int emf;
+
         ActionType(int emf) {
             this.emf = emf;
         }

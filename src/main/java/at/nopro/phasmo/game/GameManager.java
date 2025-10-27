@@ -17,12 +17,12 @@ public class GameManager {
         return game.put(id, new GameContext(mapContext));
     }
 
-    public static @Nullable GameContext getGame(Instance instance){
-        if(instance == null) {
+    public static @Nullable GameContext getGame(Instance instance) {
+        if (instance == null) {
             return null;
         }
-        for(GameContext ctx : game.values()) {
-            if(ctx.getInstance().getUuid() == instance.getUuid()) {
+        for (GameContext ctx : game.values()) {
+            if (ctx.getInstance().getUuid() == instance.getUuid()) {
                 return ctx;
             }
         }

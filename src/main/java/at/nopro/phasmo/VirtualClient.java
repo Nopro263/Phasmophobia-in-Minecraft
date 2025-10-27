@@ -4,14 +4,14 @@ import java.io.File;
 import java.io.IOException;
 
 public class VirtualClient {
-    private int screenId;
+    private final int screenId;
+    private final File hmcPath;
     private Process xvfbProcess;
     private Process minecraftProcess;
-    private File hmcPath;
 
     public VirtualClient(File hmcPath) throws IOException {
         String displayVariable = System.getenv("DISPLAY");
-        if(displayVariable == null) {
+        if (displayVariable == null) {
             throw new RuntimeException("Did not find DISPLAY env-variable");
         }
         screenId = Integer.parseInt(displayVariable.substring(1)); // strip :
@@ -20,13 +20,13 @@ public class VirtualClient {
         createVirtualScreen();
     }
 
-    public void start() throws IOException {
-        startMinecraftClient(hmcPath);
-    }
-
     private void createVirtualScreen() throws IOException {
         ProcessBuilder processBuilder = new ProcessBuilder("/usr/bin/bash", "-c", "Xvfb :" + screenId + " -screen 0 1024x768x24 +extension GLX +render -noreset");
         this.xvfbProcess = processBuilder.start();
+    }
+
+    public void start() throws IOException {
+        startMinecraftClient(hmcPath);
     }
 
     private void startMinecraftClient(File cwd) throws IOException {

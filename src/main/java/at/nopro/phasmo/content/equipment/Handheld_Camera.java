@@ -2,7 +2,6 @@ package at.nopro.phasmo.content.equipment;
 
 import at.nopro.phasmo.Utils;
 import at.nopro.phasmo.content.ItemProvider;
-import at.nopro.phasmo.event.GhostEvent;
 import at.nopro.phasmo.event.PlaceEquipmentEvent;
 import at.nopro.phasmo.game.GameContext;
 import at.nopro.phasmo.game.GameManager;
@@ -13,7 +12,6 @@ import net.minestom.server.entity.Entity;
 import net.minestom.server.event.Event;
 import net.minestom.server.event.EventDispatcher;
 import net.minestom.server.event.entity.EntityTeleportEvent;
-import net.minestom.server.event.item.ItemDropEvent;
 import net.minestom.server.event.player.PlayerBlockInteractEvent;
 import net.minestom.server.event.player.PlayerChangeHeldSlotEvent;
 import net.minestom.server.event.player.PlayerMoveEvent;
@@ -24,11 +22,12 @@ public class Handheld_Camera implements Equipment {
     @Override
     public void handle(Event event, Entity en, ItemReference r) {
         switch (event) {
-            case PlayerMoveEvent e -> handle(e,en,r);
-            case EntityTeleportEvent e -> handle(e,en,r);
-            case PlayerBlockInteractEvent e -> handle(e,en,r);
-            case PlayerChangeHeldSlotEvent e -> handle(e,en,r);
-            default -> {}
+            case PlayerMoveEvent e -> handle(e, en, r);
+            case EntityTeleportEvent e -> handle(e, en, r);
+            case PlayerBlockInteractEvent e -> handle(e, en, r);
+            case PlayerChangeHeldSlotEvent e -> handle(e, en, r);
+            default -> {
+            }
         }
     }
 
@@ -37,12 +36,17 @@ public class Handheld_Camera implements Equipment {
         g.getCameraManager().teleport(Utils.addInDirection(en.getPosition(), 0.75));
     }
 
+    private void handle(EntityTeleportEvent e, Entity en, ItemReference r) {
+        GameContext g = GameManager.getGame(e.getEntity().getInstance());
+        g.getCameraManager().teleport(Utils.addInDirection(e.getNewPosition().sub(0, g.getCamPlayer().getEyeHeight() - 0.1, 0), 0.3));
+    }
+
     private void handle(PlayerBlockInteractEvent e, Entity en, ItemReference r) {
         GameContext g = GameManager.getGame(e.getInstance());
 
         Point pos = e.getBlockPosition();
 
-        if(e.getBlockFace() == BlockFace.TOP || e.getBlockFace() == BlockFace.BOTTOM) {
+        if (e.getBlockFace() == BlockFace.TOP || e.getBlockFace() == BlockFace.BOTTOM) {
             pos = pos.add(e.getCursorPosition());
         } else {
             pos = pos.add(e.getBlockFace().toDirection().mul(0.5)); // move more to middle
@@ -50,7 +54,7 @@ public class Handheld_Camera implements Equipment {
         }
 
         Pos result = pos
-                .add(0,1.62,0)
+                .add(0, 1.62, 0)
                 .asPos().withYaw(e.getPlayer().getPosition().yaw());
 
 
@@ -64,11 +68,6 @@ public class Handheld_Camera implements Equipment {
 
     private void handle(PlayerChangeHeldSlotEvent e, Entity en, ItemReference r) {
         e.getPlayer().dropItem(e.getItemInOldSlot());
-    }
-
-    private void handle(EntityTeleportEvent e, Entity en, ItemReference r) {
-        GameContext g = GameManager.getGame(e.getEntity().getInstance());
-        g.getCameraManager().teleport(Utils.addInDirection(e.getNewPosition().sub(0,g.getCamPlayer().getEyeHeight()-0.1,0), 0.3));
     }
 
     @Override

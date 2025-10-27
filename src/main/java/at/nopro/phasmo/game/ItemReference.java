@@ -3,8 +3,6 @@ package at.nopro.phasmo.game;
 import at.nopro.phasmo.entity.ItemEntity;
 import net.minestom.server.entity.Entity;
 import net.minestom.server.entity.Player;
-import net.minestom.server.entity.metadata.display.ItemDisplayMeta;
-import net.minestom.server.entity.metadata.item.ItemEntityMeta;
 import net.minestom.server.item.ItemStack;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -24,7 +22,7 @@ public class ItemReference {
 
     @ApiStatus.Internal
     public void setInPlayerInventory(Player player, int slot) {
-        if(slot == -1) {
+        if (slot == -1) {
             getter = () -> player.getInventory().getCursorItem();
             setter = itemStack -> player.getInventory().setCursorItem(itemStack);
         } else {
@@ -36,7 +34,7 @@ public class ItemReference {
 
     @ApiStatus.Internal
     public void setAsEntity(Entity entity) {
-        if(entity instanceof ItemEntity itemEntity) {
+        if (entity instanceof ItemEntity itemEntity) {
             getter = itemEntity::getItem;
             setter = itemEntity::setItem;
             containingEntity = itemEntity;

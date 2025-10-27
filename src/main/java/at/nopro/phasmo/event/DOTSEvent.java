@@ -3,7 +3,7 @@ package at.nopro.phasmo.event;
 import at.nopro.phasmo.game.GameContext;
 import net.minestom.server.coordinate.Point;
 
-public class DOTSEvent implements PhasmoEvent{
+public class DOTSEvent implements PhasmoEvent {
     private final GameContext gameContext;
     private Point point;
 

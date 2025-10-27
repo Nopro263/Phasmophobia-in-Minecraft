@@ -14,7 +14,6 @@ import net.minestom.server.event.Event;
 import net.minestom.server.event.instance.InstanceTickEvent;
 import net.minestom.server.event.player.PlayerChangeHeldSlotEvent;
 import net.minestom.server.event.player.PlayerMoveEvent;
-import net.minestom.server.event.player.PlayerSwapItemEvent;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.item.ItemStack;
@@ -22,19 +21,20 @@ import net.minestom.server.network.packet.server.play.BlockChangePacket;
 import net.minestom.server.utils.block.BlockIterator;
 
 public class Flashlight implements Equipment { // TODO rewrite lighting engine to allow directional light sources
+    private static final int DIST = 15;
+
     @Override
     public void handle(Event event, Entity en, ItemReference r) {
         switch (event) {
-            case PlayerMoveEvent e -> handle(e,en,r);
-            case PlayerChangeHeldSlotEvent e -> handle(e,en,r);
-            case AfterDropEvent e -> handle(e,en,r);
-            case AfterPickupEvent e -> handle(e,en,r);
-            case InstanceTickEvent e -> handle(e,en,r);
-            default -> {}
+            case PlayerMoveEvent e -> handle(e, en, r);
+            case PlayerChangeHeldSlotEvent e -> handle(e, en, r);
+            case AfterDropEvent e -> handle(e, en, r);
+            case AfterPickupEvent e -> handle(e, en, r);
+            case InstanceTickEvent e -> handle(e, en, r);
+            default -> {
+            }
         }
     }
-
-    private static final int DIST = 15;
 
     @Override
     public ItemStack getDefault() {
@@ -54,13 +54,13 @@ public class Flashlight implements Equipment { // TODO rewrite lighting engine t
 
     private void handle(AfterDropEvent e, Entity entity, ItemReference r) {
         GameContext gameContext = e.getGameContext();
-        x(gameContext, gameContext.getInstance(), e.getPlayer().getPosition(), e.getPlayer().getEyeHeight(), DIST+2, true);
+        x(gameContext, gameContext.getInstance(), e.getPlayer().getPosition(), e.getPlayer().getEyeHeight(), DIST + 2, true);
         x(gameContext, gameContext.getInstance(), e.getEntity().getPosition(), entity.getEyeHeight(), DIST, false);
     }
 
     private void handle(AfterPickupEvent e, Entity entity, ItemReference r) {
         GameContext gameContext = e.getGameContext();
-        x(gameContext, gameContext.getInstance(), e.getEntity().getPosition(), e.getEntity().getEyeHeight(), DIST+2, true);
+        x(gameContext, gameContext.getInstance(), e.getEntity().getPosition(), e.getEntity().getEyeHeight(), DIST + 2, true);
         x(gameContext, gameContext.getInstance(), e.getPlayer().getPosition(), e.getPlayer().getEyeHeight(), DIST, false);
     }
 
@@ -76,20 +76,20 @@ public class Flashlight implements Equipment { // TODO rewrite lighting engine t
         int distance = 0;
         Point b = pos;
         while (bi.hasNext()) {
-            if(instance.getBlock(b).isAir()) {
+            if (instance.getBlock(b).isAir()) {
                 prev = b;
                 distance++;
-                if(distance > 5) {
+                if (distance > 5) {
                     Block block;
-                    if(revert) {
+                    if (revert) {
                         block = Block.AIR;
                     } else {
-                        block = Block.LIGHT.withProperty("level",Math.max(dist-distance, 0) + "");
+                        block = Block.LIGHT.withProperty("level", Math.max(dist - distance, 0) + "");
                     }
                     lightBlock(gameContext, instance, prev, block);
                 }
             } else {
-                if(prev != null) {
+                if (prev != null) {
                     break;
                 }
             }
@@ -97,19 +97,19 @@ public class Flashlight implements Equipment { // TODO rewrite lighting engine t
             b = bi.next();
         }
 
-        if(distance <= 5 && prev != null) {
+        if (distance <= 5 && prev != null) {
             Block block;
-            if(revert) {
+            if (revert) {
                 block = Block.AIR;
             } else {
-                block = Block.LIGHT.withProperty("level",Math.max(dist-distance, 0) + "");
+                block = Block.LIGHT.withProperty("level", Math.max(dist - distance, 0) + "");
             }
             lightBlock(gameContext, instance, prev, block);
         }
     }
 
     private void lightBlock(GameContext gameContext, Instance instance, Point prev, Block block) {
-        for(Player player : instance.getPlayers()) {
+        for (Player player : instance.getPlayers()) {
             player.sendPacket(new BlockChangePacket(prev, block));
         }
     }

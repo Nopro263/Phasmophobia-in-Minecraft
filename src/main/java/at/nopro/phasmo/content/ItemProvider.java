@@ -11,7 +11,7 @@ public class ItemProvider {
         if (level < 0 || level > 5) throw new RuntimeException("unknown EMF level");
         return ItemStack.builder(Material.STICK)
                 .itemModel("phasmo:emf_reader")
-                .set(DataComponents.DAMAGE, 5-level)
+                .set(DataComponents.DAMAGE, 5 - level)
                 .set(DataComponents.MAX_DAMAGE, 5)
                 .set(DataComponents.MAX_STACK_SIZE, 1)
                 .set(EquipmentManager.EQUIPMENT_TAG, EquipmentManager.get(EMF_Reader.class))
@@ -23,7 +23,7 @@ public class ItemProvider {
         if (level < 0 || level > 5) throw new RuntimeException("unknown EMF level");
         return ItemStack.builder(Material.STICK)
                 .itemModel("phasmo:emf_reader")
-                .set(DataComponents.DAMAGE, 5-level)
+                .set(DataComponents.DAMAGE, 5 - level)
                 .set(DataComponents.MAX_DAMAGE, 5)
                 .set(DataComponents.MAX_STACK_SIZE, 1)
                 .set(EquipmentManager.EQUIPMENT_TAG, EquipmentManager.get(Thermometer.class))

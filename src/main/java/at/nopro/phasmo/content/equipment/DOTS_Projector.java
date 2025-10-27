@@ -10,33 +10,31 @@ import at.nopro.phasmo.game.ItemReference;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.Entity;
-import net.minestom.server.entity.Player;
 import net.minestom.server.event.Event;
 import net.minestom.server.event.instance.InstanceTickEvent;
 import net.minestom.server.event.player.PlayerChangeHeldSlotEvent;
 import net.minestom.server.event.player.PlayerMoveEvent;
 import net.minestom.server.instance.Instance;
-import net.minestom.server.instance.block.Block;
 import net.minestom.server.item.ItemStack;
-import net.minestom.server.network.packet.server.play.BlockChangePacket;
 import net.minestom.server.network.packet.server.play.ParticlePacket;
 import net.minestom.server.particle.Particle;
 import net.minestom.server.utils.block.BlockIterator;
 
 public class DOTS_Projector implements Equipment {
+    private static final int DIST = 15;
+
     @Override
     public void handle(Event event, Entity en, ItemReference r) {
         switch (event) {
-            case PlayerMoveEvent e -> handle(e,en,r);
-            case PlayerChangeHeldSlotEvent e -> handle(e,en,r);
-            case AfterDropEvent e -> handle(e,en,r);
-            case AfterPickupEvent e -> handle(e,en,r);
-            case InstanceTickEvent e -> handle(e,en,r);
-            default -> {}
+            case PlayerMoveEvent e -> handle(e, en, r);
+            case PlayerChangeHeldSlotEvent e -> handle(e, en, r);
+            case AfterDropEvent e -> handle(e, en, r);
+            case AfterPickupEvent e -> handle(e, en, r);
+            case InstanceTickEvent e -> handle(e, en, r);
+            default -> {
+            }
         }
     }
-
-    private static final int DIST = 15;
 
     @Override
     public ItemStack getDefault() {
@@ -56,13 +54,13 @@ public class DOTS_Projector implements Equipment {
 
     private void handle(AfterDropEvent e, Entity entity, ItemReference r) {
         GameContext gameContext = e.getGameContext();
-        x(gameContext, gameContext.getInstance(), e.getPlayer().getPosition(), e.getPlayer().getEyeHeight(), DIST+2, true);
+        x(gameContext, gameContext.getInstance(), e.getPlayer().getPosition(), e.getPlayer().getEyeHeight(), DIST + 2, true);
         x(gameContext, gameContext.getInstance(), e.getEntity().getPosition(), entity.getEyeHeight(), DIST, false);
     }
 
     private void handle(AfterPickupEvent e, Entity entity, ItemReference r) {
         GameContext gameContext = e.getGameContext();
-        x(gameContext, gameContext.getInstance(), e.getEntity().getPosition(), e.getEntity().getEyeHeight(), DIST+2, true);
+        x(gameContext, gameContext.getInstance(), e.getEntity().getPosition(), e.getEntity().getEyeHeight(), DIST + 2, true);
         x(gameContext, gameContext.getInstance(), e.getPlayer().getPosition(), e.getPlayer().getEyeHeight(), DIST, false);
     }
 
@@ -78,14 +76,14 @@ public class DOTS_Projector implements Equipment {
         int distance = 0;
         Point b = pos;
         while (bi.hasNext()) {
-            if(instance.getBlock(b).isAir()) {
+            if (instance.getBlock(b).isAir()) {
                 prev = b;
                 distance++;
-                if(distance > 3) {
+                if (distance > 3) {
                     lightBlock(gameContext, instance, prev);
                 }
             } else {
-                if(prev != null) {
+                if (prev != null) {
                     break;
                 }
             }
@@ -93,13 +91,13 @@ public class DOTS_Projector implements Equipment {
             b = bi.next();
         }
 
-        if(distance <= 3 && prev != null) {
+        if (distance <= 3 && prev != null) {
             lightBlock(gameContext, instance, prev);
         }
     }
 
     private void lightBlock(GameContext gameContext, Instance instance, Point prev) {
-        instance.sendGroupedPacket(new ParticlePacket(Particle.HAPPY_VILLAGER, prev, new Pos(0.5,0.02,0.5), 10,4));
+        instance.sendGroupedPacket(new ParticlePacket(Particle.HAPPY_VILLAGER, prev, new Pos(0.5, 0.02, 0.5), 10, 4));
 
         gameContext.getEventNode().call(new DOTSEvent(gameContext, prev));
     }

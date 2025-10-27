@@ -22,24 +22,24 @@ public class PhasmoNodeGenerator implements NodeGenerator {
         for (byte l = -1; l <= 1; l++) {
             for (byte m = -1; m <= 1; m++) {
                 for (byte n = -1; n <= 1; n++) {
-                    if(pathCache.canMoveTo(
+                    if (pathCache.canMoveTo(
                             (short) current.blockX(),
                             (short) current.blockY(),
                             (short) current.blockZ(),
-                            l,m,n)) {
+                            l, m, n)) {
                         PNode.Type type;
-                        if(m == 0) {
+                        if (m == 0) {
                             type = PNode.Type.WALK;
-                        } else if(m == -1) {
+                        } else if (m == -1) {
                             type = PNode.Type.FALL;
                         } else {
                             type = PNode.Type.JUMP;
                         }
 
                         Point newPos = new Pos(
-                                current.blockX()+l+0.5,
-                                current.y()+m,
-                                current.blockZ()+n+0.5
+                                current.blockX() + l + 0.5,
+                                current.y() + m,
+                                current.blockZ() + n + 0.5
                         );
 
                         list.add(new PNode(
@@ -72,9 +72,9 @@ public class PhasmoNodeGenerator implements NodeGenerator {
                 (short) start.blockX(),
                 (short) start.blockY(),
                 (short) start.blockZ(),
-                (byte) (end.blockX() - start.blockX()),
-                (byte) (end.blockY() - start.blockY()),
-                (byte) (end.blockX() - start.blockX())
+                (byte) ( end.blockX() - start.blockX() ),
+                (byte) ( end.blockY() - start.blockY() ),
+                (byte) ( end.blockX() - start.blockX() )
         );
     }
 

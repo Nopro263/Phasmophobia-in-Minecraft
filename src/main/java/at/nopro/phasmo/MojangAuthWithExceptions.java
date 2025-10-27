@@ -6,9 +6,6 @@ import net.minestom.server.MinecraftServer;
 import net.minestom.server.listener.manager.PacketListenerManager;
 import net.minestom.server.listener.preplay.LoginListener;
 import net.minestom.server.network.ConnectionState;
-import net.minestom.server.network.packet.client.login.ClientEncryptionResponsePacket;
-import net.minestom.server.network.packet.client.login.ClientLoginAcknowledgedPacket;
-import net.minestom.server.network.packet.client.login.ClientLoginPluginResponsePacket;
 import net.minestom.server.network.packet.client.login.ClientLoginStartPacket;
 import net.minestom.server.network.player.GameProfile;
 import net.minestom.server.network.player.PlayerConnection;
@@ -24,11 +21,11 @@ public class MojangAuthWithExceptions {
     }
 
     public void loginStartListener(ClientLoginStartPacket packet, PlayerConnection connection) {
-        if(packet.profileId().equals(CameraManager.getCamPlayerUUID()) &&
-            packet.username().equals(CameraManager.getCamPlayerName())) {
+        if (packet.profileId().equals(CameraManager.getCamPlayerUUID()) &&
+                packet.username().equals(CameraManager.getCamPlayerName())) {
 
-            if(connection.getRemoteAddress() instanceof InetSocketAddress inetSocketAddress) {
-                if(!inetSocketAddress.getAddress().isLoopbackAddress()) {
+            if (connection.getRemoteAddress() instanceof InetSocketAddress inetSocketAddress) {
+                if (!inetSocketAddress.getAddress().isLoopbackAddress()) {
                     connection.kick(Component.text("illegal user"));
                     return;
                 }

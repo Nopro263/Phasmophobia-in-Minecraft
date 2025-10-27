@@ -16,7 +16,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.concurrent.CompletableFuture;
 
 public class ItemEntity extends Entity {
-    private Entity interactionEntity;
+    private final Entity interactionEntity;
 
     public ItemEntity(ItemStack itemStack) {
         super(EntityType.ITEM_DISPLAY);
@@ -26,12 +26,12 @@ public class ItemEntity extends Entity {
     }
 
     public static ItemEntity get(Entity entity) {
-        if(entity.getEntityMeta() instanceof InteractionMeta) {
-            if(entity.getVehicle() == null) {
+        if (entity.getEntityMeta() instanceof InteractionMeta) {
+            if (entity.getVehicle() == null) {
                 return null;
             }
             return get(entity.getVehicle());
-        } else if(entity instanceof ItemEntity itemEntity) {
+        } else if (entity instanceof ItemEntity itemEntity) {
             return itemEntity;
         }
         return null;
@@ -43,7 +43,7 @@ public class ItemEntity extends Entity {
         assert bb != null;
         assert bb.width() == bb.depth();
 
-        if(this.getEntityMeta() instanceof ItemDisplayMeta itemDisplayMeta) {
+        if (this.getEntityMeta() instanceof ItemDisplayMeta itemDisplayMeta) {
             itemDisplayMeta.setItemStack(itemStack);
             itemDisplayMeta.setDisplayContext(ItemDisplayMeta.DisplayContext.GROUND);
 
@@ -57,7 +57,7 @@ public class ItemEntity extends Entity {
             setBoundingBox(bb);
         }
 
-        if(this.interactionEntity.getEntityMeta() instanceof InteractionMeta interactionMeta) {
+        if (this.interactionEntity.getEntityMeta() instanceof InteractionMeta interactionMeta) {
             interactionMeta.setWidth((float) bb.width());
             interactionMeta.setHeight((float) bb.height());
             interactionMeta.setResponse(true);
@@ -65,11 +65,17 @@ public class ItemEntity extends Entity {
     }
 
     public ItemStack getItem() {
-        return ((ItemDisplayMeta) this.getEntityMeta()).getItemStack();
+        return ( (ItemDisplayMeta) this.getEntityMeta() ).getItemStack();
     }
 
     public void setItem(ItemStack itemStack) {
         load(itemStack);
+    }
+
+    @Override
+    public CompletableFuture<Void> teleport(Pos position, Vec velocity, long @Nullable [] chunks, int flags, boolean shouldConfirm) {
+        interactionEntity.teleport(position, velocity, chunks, flags, shouldConfirm);
+        return super.teleport(position, velocity, chunks, flags, shouldConfirm);
     }
 
     @Override
@@ -79,12 +85,6 @@ public class ItemEntity extends Entity {
         this.addPassenger(interactionEntity);
         interactionEntity.setInstance(instance, spawnPosition).join();
         return teleport(position); // only to call Event on creation
-    }
-
-    @Override
-    public CompletableFuture<Void> teleport(Pos position, Vec velocity, long @Nullable [] chunks, int flags, boolean shouldConfirm) {
-        interactionEntity.teleport(position, velocity, chunks, flags, shouldConfirm);
-        return super.teleport(position, velocity, chunks, flags, shouldConfirm);
     }
 
     @Override

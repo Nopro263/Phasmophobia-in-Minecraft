@@ -7,10 +7,11 @@ import net.kyori.adventure.resource.ResourcePackInfo;
 import net.kyori.adventure.resource.ResourcePackRequest;
 import net.kyori.adventure.text.Component;
 import net.minestom.server.MinecraftServer;
-import net.minestom.server.event.player.AsyncPlayerPreLoginEvent;
 import net.minestom.server.event.player.PlayerLoadedEvent;
 
-import java.io.*;
+import java.io.ByteArrayOutputStream;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -26,10 +27,8 @@ public class ResourcePackProvider implements HttpHandler {
     private final String ip;
     private final int port;
     private final String path;
-
+    private final ByteArrayOutputStream rawPackData;
     private HttpServer httpServer;
-    private ByteArrayOutputStream rawPackData;
-
     private ResourcePackRequest resourcePack;
     private ResourcePackInfo packInfo;
 
@@ -54,6 +53,28 @@ public class ResourcePackProvider implements HttpHandler {
         provider.startServer();
         provider.initResourcePack();
         return provider;
+    }
+
+    private void fromDirectory(Path path) throws IOException {
+        try (
+
+                ZipOutputStream zos = new ZipOutputStream(rawPackData)
+        ) {
+            Files.walkFileTree(path, Set.of(FileVisitOption.FOLLOW_LINKS), Integer.MAX_VALUE, new SimpleFileVisitor<Path>() {
+                public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+                    zos.putNextEntry(new ZipEntry(path.relativize(dir) + "/"));
+                    zos.closeEntry();
+                    return FileVisitResult.CONTINUE;
+                }
+
+                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                    zos.putNextEntry(new ZipEntry(path.relativize(file).toString()));
+                    Files.copy(file, zos);
+                    zos.closeEntry();
+                    return FileVisitResult.CONTINUE;
+                }
+            });
+        }
     }
 
     private void initResourcePack() {
@@ -85,6 +106,12 @@ public class ResourcePackProvider implements HttpHandler {
         httpServer.start();
     }
 
+    private void fromFile(Path path) throws IOException {
+        FileInputStream fileInputStream = new FileInputStream(path.toFile());
+        fileInputStream.transferTo(rawPackData);
+        fileInputStream.close();
+    }
+
     @Override
     public void handle(HttpExchange exchange) throws IOException {
         exchange.getResponseHeaders().set("Content-Type", "application/zip");
@@ -96,34 +123,6 @@ public class ResourcePackProvider implements HttpHandler {
         exchange.sendResponseHeaders(200, rawPackData.size());
         try (var stream = exchange.getResponseBody()) {
             rawPackData.writeTo(stream);
-        }
-    }
-
-    private void fromFile(Path path) throws IOException {
-        FileInputStream fileInputStream = new FileInputStream(path.toFile());
-        fileInputStream.transferTo(rawPackData);
-        fileInputStream.close();
-    }
-
-    private void fromDirectory(Path path) throws IOException {
-        try (
-
-                ZipOutputStream zos = new ZipOutputStream(rawPackData)
-        ) {
-            Files.walkFileTree(path, Set.of(FileVisitOption.FOLLOW_LINKS), Integer.MAX_VALUE,  new SimpleFileVisitor<Path>() {
-                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                    zos.putNextEntry(new ZipEntry(path.relativize(file).toString()));
-                    Files.copy(file, zos);
-                    zos.closeEntry();
-                    return FileVisitResult.CONTINUE;
-                }
-
-                public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
-                    zos.putNextEntry(new ZipEntry(path.relativize(dir).toString() + "/"));
-                    zos.closeEntry();
-                    return FileVisitResult.CONTINUE;
-                }
-            });
         }
     }
 }

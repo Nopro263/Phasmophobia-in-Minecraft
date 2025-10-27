@@ -12,8 +12,6 @@ import net.minestom.server.entity.Entity;
 import net.minestom.server.entity.metadata.EntityMeta;
 import net.minestom.server.instance.Chunk;
 import net.minestom.server.instance.Instance;
-import net.minestom.server.instance.InstanceContainer;
-import net.minestom.server.instance.SharedInstance;
 import net.minestom.server.instance.anvil.AnvilLoader;
 import net.minestom.server.timer.TaskSchedule;
 import org.jetbrains.annotations.NotNull;
@@ -21,7 +19,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.util.UUID;
 import java.util.function.Function;
@@ -30,14 +27,14 @@ public class EntityLoader extends AnvilLoader {
     private final Path entityPath;
     private final Function<Entity, Entity> entityModifier;
 
+    public EntityLoader(String path, Function<Entity, Entity> entityModifier) {
+        this(Path.of(path), entityModifier);
+    }
+
     public EntityLoader(Path path, Function<Entity, Entity> entityModifier) {
         super(path);
         this.entityModifier = entityModifier;
         this.entityPath = path.resolve("entities");
-    }
-
-    public EntityLoader(String path, Function<Entity, Entity> entityModifier) {
-        this(Path.of(path), entityModifier);
     }
 
     public EntityLoader(String path) {
@@ -52,6 +49,53 @@ public class EntityLoader extends AnvilLoader {
             throw new RuntimeException(e);
         }
         return super.loadChunk(instance, chunkX, chunkZ);
+    }
+
+    private boolean loadMCA(Instance instance, int chunkX, int chunkZ) throws IOException {
+        RegionFile mcaFile = this.getMCAFile(chunkX, chunkZ);
+        if (mcaFile == null) {
+            return false;
+        } else {
+            CompoundBinaryTag chunkData = mcaFile.readChunkData(chunkX, chunkZ);
+            if (chunkData == null) {
+                return false;
+            } else {
+                for (BinaryTag entityTag : chunkData.getList("Entities", BinaryTagTypes.COMPOUND)) {
+                    if (entityTag instanceof CompoundBinaryTag entity) {
+
+                        Entity e = loadEntity(entity);
+                        if (e == null) {
+                            continue;
+                        }
+
+                        ListBinaryTag listBinaryTag = entity.getList("Pos");
+
+                        Pos p = new Pos(listBinaryTag.getDouble(0), listBinaryTag.getDouble(1), listBinaryTag.getDouble(2));
+
+                        e.setInstance(instance, p);
+
+                        ListBinaryTag passengerTag = entity.getList("Passengers");
+                        for (int i = 0; i < passengerTag.size(); i++) {
+                            Entity passenger = loadEntity(passengerTag.getCompound(i));
+                            if (passenger == null) {
+                                continue;
+                            }
+                            passenger.setInstance(instance, p);
+
+                            MinecraftServer.getSchedulerManager().submitTask(() -> {
+                                if (passenger.getChunk() == null) {
+                                    return TaskSchedule.nextTick();
+                                }
+                                e.addPassenger(passenger);
+                                return TaskSchedule.stop();
+                            });
+                        }
+                    }
+                }
+
+            }
+        }
+        return false;
     }
 
     private @Nullable RegionFile getMCAFile(int chunkX, int chunkZ) {
@@ -71,60 +115,13 @@ public class EntityLoader extends AnvilLoader {
         }
     }
 
-    private boolean loadMCA(Instance instance, int chunkX, int chunkZ) throws IOException {
-        RegionFile mcaFile = this.getMCAFile(chunkX, chunkZ);
-        if (mcaFile == null) {
-            return false;
-        } else {
-            CompoundBinaryTag chunkData = mcaFile.readChunkData(chunkX, chunkZ);
-            if (chunkData == null) {
-                return false;
-            } else {
-                for(BinaryTag entityTag : chunkData.getList("Entities", BinaryTagTypes.COMPOUND)) {
-                    if(entityTag instanceof CompoundBinaryTag entity) {
-
-                        Entity e = loadEntity(entity);
-                        if(e == null) {
-                            continue;
-                        }
-
-                        ListBinaryTag listBinaryTag = entity.getList("Pos");
-
-                        Pos p = new Pos(listBinaryTag.getDouble(0), listBinaryTag.getDouble(1), listBinaryTag.getDouble(2));
-
-                        e.setInstance(instance, p);
-
-                        ListBinaryTag passengerTag = entity.getList("Passengers");
-                        for (int i = 0; i < passengerTag.size(); i++) {
-                            Entity passenger = loadEntity(passengerTag.getCompound(i));
-                            if(passenger == null) {
-                                continue;
-                            }
-                            passenger.setInstance(instance, p);
-
-                            MinecraftServer.getSchedulerManager().submitTask(() -> {
-                                if(passenger.getChunk() == null) {
-                                    return TaskSchedule.nextTick();
-                                }
-                                e.addPassenger(passenger);
-                                return TaskSchedule.stop();
-                            });
-                        }
-                    }
-                }
-
-            }
-        }
-        return false;
-    }
-
     private Entity loadEntity(CompoundBinaryTag entity) {
         Entity e;
 
         String id = entity.getString("id");
         int[] rawUUID = entity.getIntArray("UUID");
-        long msb = ((long)rawUUID[0] << 32) | rawUUID[1];
-        long lsb = ((long)rawUUID[2] << 32) | rawUUID[3];
+        long msb = ( (long) rawUUID[0] << 32 ) | rawUUID[1];
+        long lsb = ( (long) rawUUID[2] << 32 ) | rawUUID[3];
 
         e = new Entity(MetadataMapper.MAP.get(id), new UUID(msb, lsb));
 
@@ -139,7 +136,7 @@ public class EntityLoader extends AnvilLoader {
         MetadataMapper.META_CONSUMER.get(id).accept(entity, e);
         meta.setNotifyAboutChanges(true);
 
-        if(this.entityModifier == null) {
+        if (this.entityModifier == null) {
             return e;
         } else {
             return this.entityModifier.apply(e);

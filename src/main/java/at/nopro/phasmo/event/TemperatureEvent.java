@@ -21,12 +21,12 @@ public class TemperatureEvent implements PhasmoEvent {
         return room.getTemperature();
     }
 
-    public RoomManager.Room getRoom() {
-        return room;
-    }
-
     public void setTemperature(double temperature) {
         room.setTemperature(temperature);
+    }
+
+    public RoomManager.Room getRoom() {
+        return room;
     }
 
     public void setRoom(RoomManager.Room room) {

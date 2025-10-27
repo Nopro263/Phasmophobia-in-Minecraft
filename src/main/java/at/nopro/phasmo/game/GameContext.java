@@ -5,8 +5,8 @@ import at.nopro.phasmo.content.equipment.Equipment;
 import at.nopro.phasmo.content.equipment.EquipmentManager;
 import at.nopro.phasmo.content.ghost.TestGhost;
 import at.nopro.phasmo.entity.ItemEntity;
-import at.nopro.phasmo.entity.ai.PathCache;
 import at.nopro.phasmo.entity.PhasmoEntity;
+import at.nopro.phasmo.entity.ai.PathCache;
 import at.nopro.phasmo.event.*;
 import at.nopro.phasmo.lighting.PhasmoChunk;
 import net.minestom.server.MinecraftServer;
@@ -20,7 +20,9 @@ import net.minestom.server.event.EventNode;
 import net.minestom.server.event.entity.EntityAttackEvent;
 import net.minestom.server.event.entity.EntityTeleportEvent;
 import net.minestom.server.event.instance.InstanceTickEvent;
-import net.minestom.server.event.player.*;
+import net.minestom.server.event.player.PlayerBlockInteractEvent;
+import net.minestom.server.event.player.PlayerChangeHeldSlotEvent;
+import net.minestom.server.event.player.PlayerMoveEvent;
 import net.minestom.server.event.trait.EntityEvent;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.InstanceContainer;
@@ -29,6 +31,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class GameContext {
     private final MapContext mapContext;
+    public PhasmoEntity entity;
     private InstanceContainer instance;
     private PathCache pathCache;
     private DisplayManager displayManager;
@@ -37,10 +40,8 @@ public class GameContext {
     private ScopedScheduler scheduler;
     private RoomManager roomManager;
     private PlayerManager playerManager;
-
     private EventNode<@NotNull Event> eventNode;
     private EventNode<@NotNull Event> monitoringEventNode;
-    public PhasmoEntity entity;
     private Player camPlayer;
 
     public GameContext(MapContext mapContext) {
@@ -74,13 +75,13 @@ public class GameContext {
 
         for (int i = cx1; i <= cx2; i++) {
             for (int j = cz1; j <= cz2; j++) {
-                instance.loadChunk(i,j).join();
+                instance.loadChunk(i, j).join();
             }
         }
 
         LightingChunk.relight(instance, instance.getChunks());
 
-        System.out.println("Loaded chunks in " + (System.currentTimeMillis() - start) + "ms");
+        System.out.println("Loaded chunks in " + ( System.currentTimeMillis() - start ) + "ms");
 
         start = System.currentTimeMillis();
 
@@ -94,7 +95,7 @@ public class GameContext {
                 instance
         );
 
-        System.out.println("Generated pathfinding map in " + (System.currentTimeMillis() - start) + "ms");
+        System.out.println("Generated pathfinding map in " + ( System.currentTimeMillis() - start ) + "ms");
 
         this.activityManager = new ActivityManager(this);
         displayManager.init();
@@ -132,28 +133,37 @@ public class GameContext {
         });
     }
 
-    private void listenToEntityEvent(Class<? extends EntityEvent> clazz) {
+    private void listenToGlobalEvent(Class<? extends Event> clazz) {
         this.monitoringEventNode.addListener(clazz, (event) -> {
-            ItemReference ref;
-            if(event.getEntity() instanceof Player player) {
-                ref = ItemTracker.track(player, player.getHeldSlot());
+            for (Player player : instance.getPlayers()) {
+                ItemReference ref = ItemTracker.track(player, player.getHeldSlot());
 
-                ItemReference ref2 = ItemTracker.track(player, 45);
-                Equipment equipment2 = EquipmentManager.getEquipment(ref2.get());
-                if(equipment2 != null) {
-                    equipment2.handle(event, event.getEntity(), ref2);
+                Equipment equipment = EquipmentManager.getEquipment(ref.get());
+                if (equipment != null) {
+                    equipment.handle(event, player, ref);
                 }
-            } else if (ItemEntity.get(event.getEntity()) instanceof ItemEntity itemEntity) {
-                ref = ItemTracker.track(itemEntity);
-            } else {
-                return;
-            }
 
-            Equipment equipment = EquipmentManager.getEquipment(ref.get());
-            if(equipment == null) {
-                return;
+                ref = ItemTracker.track(player, -1);
+
+                equipment = EquipmentManager.getEquipment(ref.get());
+                if (equipment != null) {
+                    equipment.handle(event, player, ref);
+                }
+
             }
-            equipment.handle(event, event.getEntity(), ref);
+            for (Entity entity : instance.getEntities()) {
+                if (!( entity instanceof ItemEntity itemEntity )) {
+                    continue;
+                }
+
+                ItemReference ref = ItemTracker.track(itemEntity);
+
+                Equipment equipment = EquipmentManager.getEquipment(ref.get());
+                if (equipment == null) {
+                    continue;
+                }
+                equipment.handle(event, itemEntity, ref);
+            }
         });
     }
 
@@ -167,56 +177,47 @@ public class GameContext {
             }
 
             Equipment equipment = EquipmentManager.getEquipment(ref.get());
-            if(equipment == null) {
+            if (equipment == null) {
                 return;
             }
             equipment.handle(event, event.getTarget(), ref);
         });
     }
 
-    private void listenToGlobalEvent(Class<? extends Event> clazz) {
+    private void listenToEntityEvent(Class<? extends EntityEvent> clazz) {
         this.monitoringEventNode.addListener(clazz, (event) -> {
-            for(Player player : instance.getPlayers()) {
-                ItemReference ref = ItemTracker.track(player, player.getHeldSlot());
+            ItemReference ref;
+            if (event.getEntity() instanceof Player player) {
+                ref = ItemTracker.track(player, player.getHeldSlot());
 
-                Equipment equipment = EquipmentManager.getEquipment(ref.get());
-                if(equipment != null) {
-                    equipment.handle(event, player, ref);
+                ItemReference ref2 = ItemTracker.track(player, 45);
+                Equipment equipment2 = EquipmentManager.getEquipment(ref2.get());
+                if (equipment2 != null) {
+                    equipment2.handle(event, event.getEntity(), ref2);
                 }
-
-                ref = ItemTracker.track(player, -1);
-
-                equipment = EquipmentManager.getEquipment(ref.get());
-                if(equipment != null) {
-                    equipment.handle(event, player, ref);
-                }
-
+            } else if (ItemEntity.get(event.getEntity()) instanceof ItemEntity itemEntity) {
+                ref = ItemTracker.track(itemEntity);
+            } else {
+                return;
             }
-            for(Entity entity : instance.getEntities()) {
-                if(!(entity instanceof ItemEntity itemEntity)) {
-                    continue;
-                }
 
-                ItemReference ref = ItemTracker.track(itemEntity);
-
-                Equipment equipment = EquipmentManager.getEquipment(ref.get());
-                if(equipment == null) {
-                    continue;
-                }
-                equipment.handle(event, itemEntity, ref);
+            Equipment equipment = EquipmentManager.getEquipment(ref.get());
+            if (equipment == null) {
+                return;
             }
+            equipment.handle(event, event.getEntity(), ref);
         });
     }
 
-    public ScopedScheduler getScheduler() {
+    public @NotNull ScopedScheduler getScheduler() {
         return scheduler;
     }
 
-    public ActivityManager getActivityManager() {
+    public @NotNull ActivityManager getActivityManager() {
         return activityManager;
     }
 
-    public Player getCamPlayer() {
+    public @NotNull Player getCamPlayer() {
         return camPlayer;
     }
 
@@ -224,35 +225,35 @@ public class GameContext {
         this.camPlayer = camPlayer;
     }
 
-    public MapContext getMapContext() {
+    public @NotNull MapContext getMapContext() {
         return mapContext;
     }
 
-    public Instance getInstance() {
+    public @NotNull Instance getInstance() {
         return instance;
     }
 
-    public PathCache getPathCache() {
+    public @NotNull PathCache getPathCache() {
         return pathCache;
     }
 
-    public EventNode<@NotNull Event> getEventNode() {
+    public @NotNull EventNode<@NotNull Event> getEventNode() {
         return eventNode;
     }
 
-    public DisplayManager getDisplayManager() {
+    public @NotNull DisplayManager getDisplayManager() {
         return displayManager;
     }
 
-    public CameraManager getCameraManager() {
+    public @NotNull CameraManager getCameraManager() {
         return cameraManager;
     }
 
-    public RoomManager getRoomManager() {
+    public @NotNull RoomManager getRoomManager() {
         return roomManager;
     }
 
-    public PlayerManager getPlayerManager() {
+    public @NotNull PlayerManager getPlayerManager() {
         return playerManager;
     }
 }

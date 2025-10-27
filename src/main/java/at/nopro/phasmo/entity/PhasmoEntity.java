@@ -47,7 +47,7 @@ public class PhasmoEntity extends EntityCreature {
     }
 
     public CompletableFuture<PhasmoEntity> goTo(Point point) throws InvalidPositionException {
-        if(this.nodeGenerator.pointInvalid(
+        if (this.nodeGenerator.pointInvalid(
                 this.instance,
                 point,
                 this.boundingBox
@@ -58,7 +58,7 @@ public class PhasmoEntity extends EntityCreature {
         CompletableFuture<PhasmoEntity> result = new CompletableFuture<>();
 
         BoundingBox bb = this.getBoundingBox();
-        double centerToCorner = Math.sqrt(bb.width() * bb.width() + bb.depth() * bb.depth()) / (double)2.0F;
+        double centerToCorner = Math.sqrt(bb.width() * bb.width() + bb.depth() * bb.depth()) / (double) 2.0F;
 
         this.getNavigator().setPathTo(point, centerToCorner, () -> result.complete(this));
 

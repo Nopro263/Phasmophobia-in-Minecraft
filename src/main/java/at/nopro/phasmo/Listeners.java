@@ -12,7 +12,6 @@ import net.minestom.server.event.Event;
 import net.minestom.server.event.EventNode;
 import net.minestom.server.event.player.*;
 import net.minestom.server.network.packet.server.play.PlayerInfoRemovePacket;
-import net.minestom.server.network.packet.server.play.PlayerInfoUpdatePacket;
 import net.minestom.server.network.player.GameProfile;
 import net.minestom.server.potion.Potion;
 import net.minestom.server.potion.PotionEffect;
@@ -32,11 +31,11 @@ public class Listeners {
             event.setSpawningInstance(context.getInstance());
             event.getPlayer().setRespawnPoint(context.getMapContext().spawnPoint().asPos());
 
-            if(((TextComponent)event.getPlayer().getName()).content().equals(CameraManager.getCamPlayerName()) &&
-                event.getPlayer().getUuid().equals(CameraManager.getCamPlayerUUID())) {
+            if (( (TextComponent) event.getPlayer().getName() ).content().equals(CameraManager.getCamPlayerName()) &&
+                    event.getPlayer().getUuid().equals(CameraManager.getCamPlayerUUID())) {
 
                 context.setCamPlayer(event.getPlayer());
-                event.getPlayer().setRespawnPoint(context.getMapContext().spawnPoint().add(0,0,3).asPos().withLookAt(context.getMapContext().spawnPoint()));
+                event.getPlayer().setRespawnPoint(context.getMapContext().spawnPoint().add(0, 0, 3).asPos().withLookAt(context.getMapContext().spawnPoint()));
                 context.getCamPlayer().setAutoViewable(false);
             }
         });
@@ -46,7 +45,7 @@ public class Listeners {
             context.getDisplayManager().sendAllCached(event.getPlayer());
             boolean isCamera = false;
 
-            if(context.getCamPlayer() != null) {
+            if (context.getCamPlayer() != null) {
                 PlayerInfoRemovePacket pirp = new PlayerInfoRemovePacket(context.getCamPlayer().getUuid());
 
                 if (context.getCamPlayer() == event.getPlayer()) {
@@ -61,7 +60,7 @@ public class Listeners {
                 }
             }
 
-            if(!isCamera) {
+            if (!isCamera) {
                 context.getPlayerManager().initPlayerData(event.getPlayer());
                 context.getDisplayManager().drawSanity();
             }
@@ -71,7 +70,7 @@ public class Listeners {
             GameContext context = GameManager.getGame(event.getPlayer().getInstance());
             MapContext map = context.getMapContext();
 
-            if(event.getBlockPosition().samePoint(map.nvButtonVan())) {
+            if (event.getBlockPosition().samePoint(map.nvButtonVan())) {
                 boolean nowEnabled = !context.getCameraManager().hasNightVisionEnabled();
                 context.getCameraManager().setNightVision(nowEnabled);
             }
