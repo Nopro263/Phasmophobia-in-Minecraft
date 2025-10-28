@@ -22,6 +22,8 @@ public class VirtualClient {
 
     private void createVirtualScreen() throws IOException {
         ProcessBuilder processBuilder = new ProcessBuilder("/usr/bin/bash", "-c", "Xvfb :" + screenId + " -screen 0 1024x768x24 +extension GLX +render -noreset");
+        processBuilder.redirectOutput(ProcessBuilder.Redirect.INHERIT);
+        processBuilder.redirectError(ProcessBuilder.Redirect.INHERIT);
         this.xvfbProcess = processBuilder.start();
     }
 
@@ -31,7 +33,8 @@ public class VirtualClient {
 
     private void startMinecraftClient(File cwd) throws IOException {
         ProcessBuilder processBuilder = new ProcessBuilder("/usr/bin/bash", "-c", "env DISPLAY=:" + screenId + " vglrun ./headlessmc-launcher --command launch fabric:1.21.10").directory(cwd);
-        processBuilder.inheritIO();
+        processBuilder.redirectOutput(ProcessBuilder.Redirect.INHERIT);
+        processBuilder.redirectError(ProcessBuilder.Redirect.INHERIT);
         this.minecraftProcess = processBuilder.start();
     }
 }
