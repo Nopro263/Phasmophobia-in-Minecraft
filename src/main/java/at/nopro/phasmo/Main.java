@@ -47,7 +47,6 @@ public class Main {
             auth = new Auth.Offline();
         } else if ("mojang".equals(config.mcServer.auth)) {
             auth = new Auth.Online();
-            new MojangAuthWithExceptions();
         } else if ("velocity".equals(config.mcServer.auth)) {
             auth = new Auth.Velocity(config.mcServer.secret);
             //TODO find a way to whitelist the cam player
@@ -61,6 +60,10 @@ public class Main {
         }
 
         MinecraftServer minecraftServer = MinecraftServer.init(auth);
+
+        if ("mojang".equals(config.mcServer.auth)) {
+            new MojangAuthWithExceptions();
+        }
 
         if (config.devMode) {
             MinecraftServer.getCommandManager().register(new Test());
