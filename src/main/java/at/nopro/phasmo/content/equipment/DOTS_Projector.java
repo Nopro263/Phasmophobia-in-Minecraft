@@ -97,7 +97,7 @@ public class DOTS_Projector implements Equipment {
     }
 
     private void lightBlock(GameContext gameContext, Instance instance, Point prev) {
-        instance.sendGroupedPacket(new ParticlePacket(Particle.HAPPY_VILLAGER, prev, new Pos(0.5, 0.02, 0.5), 10, 4));
+        instance.sendGroupedPacket(new ParticlePacket(Particle.HAPPY_VILLAGER, prev, new Pos(0.5, 0.02, 0.5), 10, 1));
 
         gameContext.getEventNode().call(new DOTSEvent(gameContext, prev));
     }

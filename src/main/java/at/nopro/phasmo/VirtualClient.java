@@ -3,6 +3,8 @@ package at.nopro.phasmo;
 import java.io.File;
 import java.io.IOException;
 
+import static at.nopro.phasmo.Configuration.config;
+
 public class VirtualClient {
     private final int screenId;
     private final File hmcPath;
@@ -32,7 +34,7 @@ public class VirtualClient {
     }
 
     private void startMinecraftClient(File cwd) throws IOException {
-        ProcessBuilder processBuilder = new ProcessBuilder("/usr/bin/bash", "-c", "env DISPLAY=:" + screenId + " vglrun ./headlessmc-launcher --command launch fabric:1.21.10").directory(cwd);
+        ProcessBuilder processBuilder = new ProcessBuilder("/usr/bin/bash", "-c", "env DISPLAY=:" + screenId + " CONNECT_PORT=" + config.mcServer.port + " vglrun ./headlessmc-launcher --command launch fabric:1.21.10").directory(cwd);
         processBuilder.redirectOutput(ProcessBuilder.Redirect.INHERIT);
         processBuilder.redirectError(ProcessBuilder.Redirect.INHERIT);
         this.minecraftProcess = processBuilder.start();

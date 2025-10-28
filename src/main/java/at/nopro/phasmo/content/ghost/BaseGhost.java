@@ -49,7 +49,7 @@ public class BaseGhost extends PhasmoEntity {
     private void showWhenInDOTS() {
         setAutoViewable(true);
         gameContext.getScheduler().run(this.hashCode() + "GhostDOTS", (first) -> {
-            if (first) return TaskSchedule.seconds(2);
+            if (first) return TaskSchedule.tick(10);
 
             setAutoViewable(false);
             return TaskSchedule.stop();
