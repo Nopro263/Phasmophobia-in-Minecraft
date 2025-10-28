@@ -8,7 +8,7 @@ import java.util.List;
 
 public class Maps {
     public static final MapContext TANGLEWOOD_DRIVE = new MapContext(
-            "/home/noah/.local/share/multimc/instances/1.21.8_2/.minecraft/saves/6_tanglewood",
+            "maps/6_tanglewood",
             17000,
             new Pos(22.0, -42, 2.0),
             new Pos(-15, -43, -12),
