@@ -3,6 +3,7 @@
 - [x] offhand and drop handling (reset state)
 - [x] per player schedule with id (same id overwrites)
 - eigener navigator und pathfinder (Navigation meshes + nodes with height)
+- make navigation system better (no-go-zone, baked meshes)
 - [x] Voice chat integration https://github.com/LooFifteen/simple-voice-chat-minestom
 - custom data for blocks in vanilla
 - [x] camera rendering
@@ -12,25 +13,25 @@
 - [x] sanity chart
 - multiple cameras
 - equipment
-  - [x] camera
-  - [x] flashlight
-  - uv-flashlight
-  - dots-projector
-  - ~ thermometer
-  - ~ book
-  - [x] emf reader
-  - spirit box (use voice chat and text chat)
-  - optional
-    - crucifix
-    - firelight
-    - headgear
-    - igniter
-    - incense
-    - motion sensor
-    - parabolic microphone
-    - photo camera
-    - salt
-    - sanity medication
-    - sound recorder
-    - sound sensor
-    - tripod
+    - [x] camera
+    - [x] flashlight
+    - uv-flashlight
+    - [x] dots-projector
+    - ~ thermometer
+    - ~ book
+    - [x] emf reader
+    - spirit box (use voice chat and text chat)
+    - optional
+        - crucifix
+        - firelight
+        - headgear
+        - igniter
+        - incense
+        - motion sensor
+        - parabolic microphone
+        - photo camera
+        - salt
+        - sanity medication
+        - sound recorder
+        - sound sensor
+        - tripod

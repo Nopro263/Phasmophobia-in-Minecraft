@@ -21,7 +21,7 @@ resourcepackServer:
     https: false
 
 camera:
-  enabled: true
+  enabled: true # has a massive performance impact (6x normal cpu usage)
   playerName: CAM
   playerUuid: 22689332-a7fd-4191-9600-b0fe1135ee34
   headlessmcPath: "./headlessmc"

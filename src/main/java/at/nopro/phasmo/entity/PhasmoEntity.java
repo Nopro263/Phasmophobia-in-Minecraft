@@ -46,12 +46,12 @@ public class PhasmoEntity extends EntityCreature {
         return gameContext.getRoomManager().getRoom(position);
     }
 
-    public CompletableFuture<PhasmoEntity> goTo(Point point) throws InvalidPositionException {
+    public CompletableFuture<PhasmoEntity> goTo(Point point) throws InvalidPositionException { // FixMe if point not reachable, server crashes
         if (this.nodeGenerator.pointInvalid(
                 this.instance,
                 point,
                 this.boundingBox
-        )) {
+        ) || gameContext.getRoomManager().getRoom(point) == null) {
             throw new InvalidPositionException("target position is invalid");
         }
 
@@ -63,5 +63,9 @@ public class PhasmoEntity extends EntityCreature {
         this.getNavigator().setPathTo(point, centerToCorner, () -> result.complete(this));
 
         return result;
+    }
+
+    public GameContext getGameContext() {
+        return gameContext;
     }
 }

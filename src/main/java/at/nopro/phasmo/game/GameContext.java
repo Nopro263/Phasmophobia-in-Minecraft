@@ -131,6 +131,10 @@ public class GameContext {
         this.monitoringEventNode.addListener(SanityDrainEvent.class, event -> {
             playerManager.onSanityDrain(event);
         });
+
+        this.monitoringEventNode.addListener(PlayerDieEvent.class, event -> {
+            playerManager.onPlayerDie(event);
+        });
     }
 
     private void listenToGlobalEvent(Class<? extends Event> clazz) {

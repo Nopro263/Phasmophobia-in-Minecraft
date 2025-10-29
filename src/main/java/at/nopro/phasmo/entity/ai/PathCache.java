@@ -1,20 +1,31 @@
 package at.nopro.phasmo.entity.ai;
 
 
+import net.minestom.server.coordinate.BlockVec;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.block.Block;
+
+import java.util.Random;
+import java.util.function.Predicate;
 
 public class PathCache {
     private final int[][][] cache;
     private final int ox;
     private final int oy;
     private final int oz;
+    private final int sx;
+    private final int sy;
+    private final int sz;
+    private final Random random = new Random();
 
-    public PathCache(int[][][] data, int ox, int oy, int oz) {
+    public PathCache(int[][][] data, int ox, int oy, int oz, int sx, int sy, int sz) {
         cache = data;
         this.ox = ox;
         this.oy = oy;
         this.oz = oz;
+        this.sx = sx;
+        this.sy = sy;
+        this.sz = sz;
     }
 
     public static PathCache compute(short x1, short y1, short z1, short x2, short y2, short z2, Instance instance) {
@@ -39,7 +50,7 @@ public class PathCache {
                 for (int k = z1; k <= z2; k++) {
 
                     Block currentBlock = instance.getBlock(i, j, k);
-                    if (!currentBlock.isAir()) {
+                    if (!currentBlock.isAir() && !currentBlock.key().value().contains("door")) {
                         data[i + ox][j + oy][k + oz] = 0;
                         continue;
                     }
@@ -58,7 +69,7 @@ public class PathCache {
                             for (byte n = -1; n <= 1; n++) {
                                 Block b = instance.getBlock(i + l, j + m, k + n);
                                 Block bl = instance.getBlock(i + l, j + m - 1, k + n);
-                                if (b.isAir() && !bl.isAir()) {
+                                if (( b.isAir() || b.key().value().contains("door") ) && !bl.isAir()) {
                                     d |= 1 << PathCache.calculateIndex(l, m, n);
                                 }
                             }
@@ -70,7 +81,22 @@ public class PathCache {
             }
         }
 
-        return new PathCache(data, ox, oy, oz);
+        return new PathCache(data, ox, oy, oz, sx, sy, sz);
+    }
+
+    public BlockVec getRandomBlock(Predicate<BlockVec> filter) {
+        for (int i = 0; i < 100; i++) {
+            int x = random.nextInt(sx);
+            int y = random.nextInt(sy);
+            int z = random.nextInt(sz);
+            if (cache[x][y][z] != 0) {
+                BlockVec vec = new BlockVec(x - ox, y - oy, z - oz);
+                if (filter.test(vec)) {
+                    return vec;
+                }
+            }
+        }
+        throw new RuntimeException("Well Shit");
     }
 
     private static int calculateIndex(byte dx, byte dy, byte dz) {

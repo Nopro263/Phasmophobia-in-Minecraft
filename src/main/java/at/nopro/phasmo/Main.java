@@ -4,7 +4,10 @@ import at.nopro.phasmo.content.equipment.*;
 import at.nopro.phasmo.content.map.Maps;
 import at.nopro.phasmo.entity.PhasmoEntity;
 import at.nopro.phasmo.entity.ai.InvalidPositionException;
-import at.nopro.phasmo.game.*;
+import at.nopro.phasmo.game.CameraManager;
+import at.nopro.phasmo.game.GameContext;
+import at.nopro.phasmo.game.GameManager;
+import at.nopro.phasmo.game.ItemTracker;
 import dev.lu15.voicechat.VoiceChat;
 import net.kyori.adventure.text.Component;
 import net.minestom.server.Auth;
@@ -14,9 +17,8 @@ import net.minestom.server.command.builder.arguments.ArgumentType;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.Player;
+import net.minestom.server.entity.ai.GoalSelector;
 import net.minestom.server.entity.pathfinding.PNode;
-import net.minestom.server.instance.block.Block;
-import net.minestom.server.network.packet.server.play.BlockChangePacket;
 import net.minestom.server.network.packet.server.play.ParticlePacket;
 import net.minestom.server.particle.Particle;
 import net.minestom.server.timer.TaskSchedule;
@@ -94,12 +96,12 @@ public class Main {
                 if (context == null) {
                     continue;
                 }
-                RoomManager.Room room = context.getRoomManager().getRoom(player.getPosition());
+                GoalSelector goalSelector = context.entity.getAIGroups().stream().findFirst().get().getCurrentGoalSelector();
                 String n;
-                if (room == null) {
+                if (goalSelector == null) {
                     n = "---";
                 } else {
-                    n = room.getName();
+                    n = goalSelector.getClass().getSimpleName();
                 }
 
                 player.sendActionBar(Component.text(n));
@@ -143,24 +145,16 @@ public class Main {
     private static class Test2 extends Command {
 
         public Test2() {
-            super("showValidArea");
+            super("die");
 
             addSyntax((sender, ctx) -> {
                 if (sender instanceof Player player) {
                     GameContext context = GameManager.getGame(player.getInstance());
 
-                    for (int i = context.getMapContext().lowerEnd().blockX(); i <= context.getMapContext().upperEnd().blockX(); i++) {
-                        for (int j = context.getMapContext().lowerEnd().blockY(); j <= context.getMapContext().upperEnd().blockY(); j++) {
-                            for (int k = context.getMapContext().lowerEnd().blockZ(); k <= context.getMapContext().upperEnd().blockZ(); k++) {
-                                if (!context.getPathCache().isInvalid(
-                                        (short) i,
-                                        (short) j,
-                                        (short) k
-                                )) {
-                                    player.sendPacket(new BlockChangePacket(new Pos(i, j, k), Block.LIME_STAINED_GLASS));
-                                }
-                            }
-                        }
+                    if (context.getPlayerManager().isAlive(player)) {
+                        context.getPlayerManager().kill(player);
+                    } else {
+                        context.getPlayerManager().revive(player);
                     }
                 }
             });

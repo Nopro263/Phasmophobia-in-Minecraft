@@ -1,8 +1,12 @@
 package at.nopro.phasmo.game;
 
 import at.nopro.phasmo.event.GhostEvent;
+import at.nopro.phasmo.event.PlayerDieEvent;
 import at.nopro.phasmo.event.SanityDrainEvent;
+import net.minestom.server.entity.GameMode;
 import net.minestom.server.entity.Player;
+import net.minestom.server.potion.Potion;
+import net.minestom.server.potion.PotionEffect;
 import net.minestom.server.tag.Tag;
 
 import java.awt.*;
@@ -80,6 +84,36 @@ public class PlayerManager {
         }
         event.getPlayer().setTag(SANITY, event.getNewSanity());
         gameContext.getDisplayManager().drawSanity();
+    }
+
+    public void onPlayerDie(PlayerDieEvent event) {
+        gameContext.getDisplayManager().drawSanity();
+    }
+
+    public void setSanity(Player player, int sanity) {
+        player.setTag(SANITY, sanity);
+    }
+
+    public boolean isAlive(Player player) {
+        return player.getTag(ALIVE);
+    }
+
+    public void kill(Player player) {
+        player.setTag(ALIVE, false);
+        player.setGameMode(GameMode.ADVENTURE);
+        player.setAllowFlying(true);
+        player.setAutoViewable(false);
+        player.addEffect(new Potion(PotionEffect.WITHER, 1, Potion.INFINITE_DURATION));
+        gameContext.getEventNode().call(new PlayerDieEvent(gameContext, player, false));
+    }
+
+    public void revive(Player player) {
+        player.setTag(ALIVE, true);
+        player.setGameMode(GameMode.SURVIVAL);
+        player.setAllowFlying(false);
+        player.setAutoViewable(true);
+        player.removeEffect(PotionEffect.WITHER);
+        gameContext.getEventNode().call(new PlayerDieEvent(gameContext, player, true));
     }
 
     public record PlayerData(Color color, int sanity, boolean alive) {

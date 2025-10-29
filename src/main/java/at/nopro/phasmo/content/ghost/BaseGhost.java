@@ -6,15 +6,33 @@ import at.nopro.phasmo.event.GhostEvent;
 import at.nopro.phasmo.event.TemperatureEvent;
 import at.nopro.phasmo.game.GameContext;
 import net.minestom.server.entity.EntityType;
+import net.minestom.server.entity.ai.EntityAIGroup;
+import net.minestom.server.entity.ai.GoalSelector;
 import net.minestom.server.timer.TaskSchedule;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 
 public class BaseGhost extends PhasmoEntity {
+    private final EntityAIGroup aiGroup;
+    private final Map<GoalSelector, Integer> goalPriorities;
+
     public BaseGhost(EntityType entityType, GameContext gameContext) {
         super(entityType, gameContext);
 
         setAutoViewable(false);
+
+        aiGroup = new EntityAIGroup();
+        goalPriorities = new HashMap<>();
+        addAIGroup(aiGroup);
+    }
+
+    protected void addGoal(int priority, GoalSelector goal) {
+        goalPriorities.put(goal, priority);
+        aiGroup.getGoalSelectors().add(goal);
+        aiGroup.getGoalSelectors().sort((o1, o2) -> goalPriorities.get(o1) - goalPriorities.get(o2));
+        addAIGroup(aiGroup);
     }
 
     protected void activateEMF5() {
