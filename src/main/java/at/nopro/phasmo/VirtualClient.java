@@ -17,6 +17,7 @@ public class VirtualClient {
             throw new RuntimeException("Did not find DISPLAY env-variable");
         }
         screenId = Integer.parseInt(displayVariable.substring(1)); // strip :
+        System.out.println("using DISPLAY " + screenId);
         this.hmcPath = hmcPath;
 
         createVirtualScreen();
@@ -34,7 +35,9 @@ public class VirtualClient {
     }
 
     private void startMinecraftClient(File cwd) throws IOException {
-        ProcessBuilder processBuilder = new ProcessBuilder("/usr/bin/bash", "-c", "env DISPLAY=:" + screenId + " CONNECT_PORT=" + config.mcServer.port + " vglrun ./headlessmc-launcher --command launch fabric:1.21.10").directory(cwd);
+        ProcessBuilder processBuilder = new ProcessBuilder("/usr/bin/bash", "-c", "vglrun ./headlessmc-launcher --command launch fabric:1.21.10").directory(cwd);
+        processBuilder.environment().put("DISPLAY", ":" + screenId);
+        processBuilder.environment().put("CONNECT_PORT", config.mcServer.port + "");
         processBuilder.redirectOutput(ProcessBuilder.Redirect.INHERIT);
         processBuilder.redirectError(ProcessBuilder.Redirect.INHERIT);
         this.minecraftProcess = processBuilder.start();
