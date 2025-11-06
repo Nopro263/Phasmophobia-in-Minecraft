@@ -160,9 +160,13 @@ public class DisplayManager {
                 i++;
             }
 
-            String average_percent = ( sanity_sum / Math.max(i, 1) ) + "%";
+            int average_int = sanity_sum / Math.max(i, 1);
+
+            String average_percent = average_int + "%";
             int average_percent_width = g.getFontMetrics().stringWidth(average_percent);
             g.drawString(average_percent, ( 128 * 2 - average_percent_width ) / 2, font_height * 2);
+
+            gameContext.getPlayerManager().setAverageSanity(average_int);
         });
     }
 

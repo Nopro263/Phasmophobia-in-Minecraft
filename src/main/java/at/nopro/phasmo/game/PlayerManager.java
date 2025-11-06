@@ -5,9 +5,11 @@ import at.nopro.phasmo.event.PlayerDieEvent;
 import at.nopro.phasmo.event.SanityDrainEvent;
 import net.minestom.server.entity.GameMode;
 import net.minestom.server.entity.Player;
+import net.minestom.server.network.packet.server.play.ChangeGameStatePacket;
 import net.minestom.server.potion.Potion;
 import net.minestom.server.potion.PotionEffect;
 import net.minestom.server.tag.Tag;
+import org.jetbrains.annotations.ApiStatus;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -24,6 +26,7 @@ public class PlayerManager {
             Color.MAGENTA
     };
     private final GameContext gameContext;
+    private int averageSanity;
 
     public PlayerManager(GameContext gameContext) {
         this.gameContext = gameContext;
@@ -44,7 +47,7 @@ public class PlayerManager {
             throw new RuntimeException("too many players in lobby");
         }
 
-        player.setTag(SANITY, 50);
+        player.setTag(SANITY, 100);
         player.setTag(ALIVE, true);
         player.setTag(PLAYERCOLORTAG, textColors.getFirst());
     }
@@ -57,6 +60,7 @@ public class PlayerManager {
         );
     }
 
+    @ApiStatus.Internal
     public void onGhostEvent(GhostEvent ghostEvent) {
         RoomManager.Room room = gameContext.getRoomManager().getRoom(ghostEvent.getOrigin());
         if (room == null) {
@@ -78,6 +82,7 @@ public class PlayerManager {
         }
     }
 
+    @ApiStatus.Internal
     public void onSanityDrain(SanityDrainEvent event) {
         if (event.isCancelled()) {
             return;
@@ -86,8 +91,13 @@ public class PlayerManager {
         gameContext.getDisplayManager().drawSanity();
     }
 
+    @ApiStatus.Internal
     public void onPlayerDie(PlayerDieEvent event) {
         gameContext.getDisplayManager().drawSanity();
+    }
+
+    public int getAverageSanity() {
+        return averageSanity;
     }
 
     public void setSanity(Player player, int sanity) {
@@ -96,6 +106,16 @@ public class PlayerManager {
 
     public boolean isAlive(Player player) {
         return player.getTag(ALIVE);
+    }
+
+    @ApiStatus.Internal
+    public void setAverageSanity(int sanity) {
+        averageSanity = sanity;
+    }
+
+    public void showKillAnimation(Player player) {
+        player.sendPacket(new ChangeGameStatePacket(ChangeGameStatePacket.Reason.PLAYER_ELDER_GUARDIAN_MOB_APPEARANCE, 1));
+        player.addEffect(new Potion(PotionEffect.DARKNESS, 0, 2));
     }
 
     public void kill(Player player) {

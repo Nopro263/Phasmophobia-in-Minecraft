@@ -71,7 +71,7 @@ public class BaseGhost extends PhasmoEntity {
 
     protected void activateDOTS() {
         gameContext.getEventNode().addListener(DOTSEvent.class, (event) -> {
-            if (event.getPoint().sameBlock(getPosition()) || event.getPoint().sameBlock(getPosition().add(0, 1, 0))) {
+            if (event.getPoint().distanceSquared(getPosition()) < 2) {
                 showWhenInDOTS();
             }
         });

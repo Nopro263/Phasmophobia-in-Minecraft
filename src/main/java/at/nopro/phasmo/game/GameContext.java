@@ -51,6 +51,7 @@ public class GameContext {
 
     private void load() {
         this.scheduler = new ScopedScheduler();
+        this.playerManager = new PlayerManager(this);
         this.displayManager = new DisplayManager(this);
         this.roomManager = new RoomManager(this);
 
@@ -121,7 +122,6 @@ public class GameContext {
         this.entity.setInstance(instance, new Pos(-8, -42, 3));
 
         this.cameraManager = new CameraManager(this);
-        this.playerManager = new PlayerManager(this);
 
         this.monitoringEventNode.addListener(GhostEvent.class, event -> {
             activityManager.onGhostEvent(event);

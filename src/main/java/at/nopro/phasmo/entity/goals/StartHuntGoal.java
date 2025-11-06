@@ -53,6 +53,9 @@ public class StartHuntGoal extends GoalSelector {
         if (ghost.getRoom().getPlayers().isEmpty()) {
             return false;
         }
+        if (ghost.getGameContext().getPlayerManager().getAverageSanity() >= 50) {
+            return false;
+        }
         return System.currentTimeMillis() - lastEndedHunt >= GRACE_PERIOD;
     }
 
@@ -72,6 +75,10 @@ public class StartHuntGoal extends GoalSelector {
         }
 
         if (targetPlayer != null) {
+            if (ghost.getPosition().distanceSquared(targetPlayer.getPosition()) < 4) {
+                ghost.getGameContext().getPlayerManager().showKillAnimation(targetPlayer);
+                ghost.getGameContext().getPlayerManager().kill(targetPlayer);
+            }
             try {
                 ghost.goTo(targetPlayer.getPosition());
                 return;
