@@ -9,7 +9,7 @@ import net.minestom.server.entity.EntityType;
 
 public class TestGhost extends BaseGhost {
     public TestGhost(GameContext gameContext) {
-        super(EntityType.WITHER_SKELETON, gameContext);
+        super(EntityType.SKELETON, gameContext);
 
         addGoal(10, new StartHuntGoal(this));
         addGoal(20, new ThrowItemGoal(this));

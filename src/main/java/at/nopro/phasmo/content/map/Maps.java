@@ -11,9 +11,9 @@ public class Maps {
             "maps/6_tanglewood",
             17000,
             new Pos(22.0, -42, 2.0),
-            new Pos(-15, -43, -12),
+            new Pos(-15, -46, -12),
             new Pos(15, -41, 15),
-            List.of(-42),
+            List.of(-42, -46),
             new Pos(22, -41, -2),
             Direction.WEST
     );

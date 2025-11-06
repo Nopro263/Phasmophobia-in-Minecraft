@@ -7,8 +7,6 @@ import at.nopro.phasmo.event.StartHuntEvent;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.entity.Player;
 import net.minestom.server.entity.ai.GoalSelector;
-import net.minestom.server.instance.block.Block;
-import net.minestom.server.network.packet.server.play.BlockChangePacket;
 
 import java.time.Duration;
 
@@ -67,6 +65,7 @@ public class StartHuntGoal extends GoalSelector {
 
     @Override
     public void tick(long l) {
+        ghost.setAutoViewable(true);
         if (targetPlayer == null) {
             var entity = ghost.getInstance().getNearbyEntities(ghost.getPosition(), 10).stream().filter((e) -> e.hasLineOfSight(ghost) && e instanceof Player p && ghost.getGameContext().getPlayerManager().isAlive(p)).findFirst();
             targetPlayer = (Player) entity.orElse(null);
@@ -83,12 +82,8 @@ public class StartHuntGoal extends GoalSelector {
 
         if (roamTargetPos == null || roamTargetPos.sameBlock(ghost.getPosition())) {
             roamTargetPos = ghost.getGameContext().getPathCache().getRandomBlock((v) -> ghost.getGameContext().getRoomManager().getRoom(v) != null);
-            for (Player player : ghost.getInstance().getPlayers()) {
-                player.sendPacket(new BlockChangePacket(roamTargetPos, Block.REDSTONE_BLOCK));
-            }
+            roamTargetPos = roamTargetPos.add(0.5, 0, 0.5);
         }
-
-        ghost.getInstance().getPlayers().forEach((p) -> p.teleport(roamTargetPos.asPos()));
 
         try {
             ghost.goTo(roamTargetPos);

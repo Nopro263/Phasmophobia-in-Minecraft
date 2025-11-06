@@ -5,10 +5,13 @@ import at.nopro.phasmo.event.DOTSEvent;
 import at.nopro.phasmo.event.GhostEvent;
 import at.nopro.phasmo.event.TemperatureEvent;
 import at.nopro.phasmo.game.GameContext;
+import net.minestom.server.collision.BoundingBox;
 import net.minestom.server.entity.EntityType;
 import net.minestom.server.entity.ai.EntityAIGroup;
 import net.minestom.server.entity.ai.GoalSelector;
+import net.minestom.server.entity.attribute.Attribute;
 import net.minestom.server.timer.TaskSchedule;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -26,6 +29,17 @@ public class BaseGhost extends PhasmoEntity {
         aiGroup = new EntityAIGroup();
         goalPriorities = new HashMap<>();
         addAIGroup(aiGroup);
+        getAttribute(Attribute.MOVEMENT_SPEED).setBaseValue(0.15);
+    }
+
+    @Override
+    public @NotNull BoundingBox getBoundingBox() {
+        return new BoundingBox(0.2, 1.2, 0.2);
+    }
+
+    @Override
+    public boolean hasEntityCollision() {
+        return false;
     }
 
     protected void addGoal(int priority, GoalSelector goal) {
