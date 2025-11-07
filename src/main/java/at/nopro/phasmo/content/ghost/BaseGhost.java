@@ -2,7 +2,7 @@ package at.nopro.phasmo.content.ghost;
 
 import at.nopro.phasmo.entity.PhasmoEntity;
 import at.nopro.phasmo.event.DOTSEvent;
-import at.nopro.phasmo.event.GhostEvent;
+import at.nopro.phasmo.event.EmfEvent;
 import at.nopro.phasmo.event.TemperatureEvent;
 import at.nopro.phasmo.game.GameContext;
 import net.minestom.server.collision.BoundingBox;
@@ -13,12 +13,10 @@ import net.minestom.server.entity.attribute.Attribute;
 import net.minestom.server.timer.TaskSchedule;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 
 public class BaseGhost extends PhasmoEntity {
-    private final EntityAIGroup aiGroup;
+    private final List<GoalSelector> goalSelectors;
     private final Map<GoalSelector, Integer> goalPriorities;
 
     public BaseGhost(EntityType entityType, GameContext gameContext) {
@@ -26,9 +24,8 @@ public class BaseGhost extends PhasmoEntity {
 
         setAutoViewable(false);
 
-        aiGroup = new EntityAIGroup();
+        goalSelectors = new ArrayList<>();
         goalPriorities = new HashMap<>();
-        addAIGroup(aiGroup);
         getAttribute(Attribute.MOVEMENT_SPEED).setBaseValue(0.15);
     }
 
@@ -44,18 +41,25 @@ public class BaseGhost extends PhasmoEntity {
 
     protected void addGoal(int priority, GoalSelector goal) {
         goalPriorities.put(goal, priority);
-        aiGroup.getGoalSelectors().add(goal);
-        aiGroup.getGoalSelectors().sort((o1, o2) -> goalPriorities.get(o1) - goalPriorities.get(o2));
+        goalSelectors.add(goal);
+    }
+
+    @Override
+    public void spawn() {
+        super.spawn();
+        EntityAIGroup aiGroup = new EntityAIGroup();
+        goalSelectors.sort((o1, o2) -> goalPriorities.get(o1) - goalPriorities.get(o2));
+        aiGroup.getGoalSelectors().addAll(goalSelectors);
         addAIGroup(aiGroup);
     }
 
     protected void activateEMF5() {
         Random emfRandom = new Random();
-        gameContext.getEventNode().addListener(GhostEvent.class, (event) -> {
-            if (event.getActionType() == GhostEvent.ActionType.INTERACT ||
-                    event.getActionType() == GhostEvent.ActionType.THROW) {
+        gameContext.getEventNode().addListener(EmfEvent.class, (event) -> {
+            if (event.getActionType() == EmfEvent.ActionType.INTERACT ||
+                    event.getActionType() == EmfEvent.ActionType.THROW) {
                 if (emfRandom.nextBoolean()) {
-                    event.setActionType(GhostEvent.ActionType.EMF_5);
+                    event.setActionType(EmfEvent.ActionType.EMF_5);
                 }
             }
         });

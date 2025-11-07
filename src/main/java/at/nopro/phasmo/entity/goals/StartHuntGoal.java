@@ -50,7 +50,7 @@ public class StartHuntGoal extends GoalSelector {
         if (System.currentTimeMillis() - lastTriedHunt < HUNT_TIMEOUT) {
             return false;
         }
-        if (ghost.getRoom().getPlayers().isEmpty()) {
+        if (ghost.getGameContext().getPlayerManager().getAlivePlayers().isEmpty()) {
             return false;
         }
         if (ghost.getGameContext().getPlayerManager().getAverageSanity() >= 50) {
@@ -64,6 +64,7 @@ public class StartHuntGoal extends GoalSelector {
         System.out.println("Hunt started");
         ghost.setAutoViewable(true);
         lastDeadPlayer = null;
+        targetPlayer = null;
     }
 
     @Override

@@ -1,7 +1,6 @@
 package at.nopro.phasmo.entity;
 
 import at.nopro.phasmo.entity.ai.InvalidPositionException;
-import at.nopro.phasmo.event.GhostEvent;
 import at.nopro.phasmo.game.GameContext;
 import at.nopro.phasmo.game.RoomManager;
 import net.minestom.server.collision.BoundingBox;
@@ -12,7 +11,6 @@ import net.minestom.server.entity.pathfinding.followers.GroundNodeFollower;
 import net.minestom.server.entity.pathfinding.followers.NodeFollower;
 import net.minestom.server.entity.pathfinding.generators.NodeGenerator;
 import net.minestom.server.entity.pathfinding.generators.PreciseGroundNodeGenerator;
-import net.minestom.server.timer.TaskSchedule;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -33,11 +31,6 @@ public class PhasmoEntity extends EntityCreature {
 
         this.getNavigator().setNodeGenerator(() -> nodeGenerator);
         this.getNavigator().setNodeFollower(() -> nodeFollower);
-
-        gameContext.getScheduler().run("send-updates", () -> {
-            gameContext.getEventNode().call(new GhostEvent(gameContext, GhostEvent.ActionType.INTERACT, position));
-            return TaskSchedule.seconds(2);
-        });
     }
 
     @Override

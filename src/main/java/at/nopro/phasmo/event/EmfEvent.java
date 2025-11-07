@@ -3,13 +3,13 @@ package at.nopro.phasmo.event;
 import at.nopro.phasmo.game.GameContext;
 import net.minestom.server.coordinate.Point;
 
-public class GhostEvent implements PhasmoEvent {
+public class EmfEvent implements PhasmoEvent {
     private final GameContext gameContext;
     private final Point origin;
     private final ActionType originalActionType;
     private ActionType actionType;
 
-    public GhostEvent(GameContext gameContext, ActionType actionType, Point origin) {
+    public EmfEvent(GameContext gameContext, ActionType actionType, Point origin) {
         this.gameContext = gameContext;
         this.actionType = actionType;
         this.origin = origin;

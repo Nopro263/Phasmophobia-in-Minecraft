@@ -106,7 +106,7 @@ public class GameContext {
         this.monitoringEventNode.setPriority(99);
         this.eventNode.addChild(this.monitoringEventNode);
 
-        listenToGlobalEvent(GhostEvent.class);
+        listenToGlobalEvent(EmfEvent.class);
         listenToGlobalEvent(TemperatureEvent.class);
         listenToGlobalEvent(InstanceTickEvent.class);
 
@@ -123,7 +123,7 @@ public class GameContext {
 
         this.cameraManager = new CameraManager(this);
 
-        this.monitoringEventNode.addListener(GhostEvent.class, event -> {
+        this.monitoringEventNode.addListener(EmfEvent.class, event -> {
             activityManager.onGhostEvent(event);
             playerManager.onGhostEvent(event);
         });

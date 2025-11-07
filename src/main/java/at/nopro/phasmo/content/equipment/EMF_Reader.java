@@ -1,7 +1,7 @@
 package at.nopro.phasmo.content.equipment;
 
 import at.nopro.phasmo.content.ItemProvider;
-import at.nopro.phasmo.event.GhostEvent;
+import at.nopro.phasmo.event.EmfEvent;
 import at.nopro.phasmo.game.ItemReference;
 import net.minestom.server.component.DataComponents;
 import net.minestom.server.entity.Entity;
@@ -13,7 +13,7 @@ public class EMF_Reader implements Equipment {
     @Override
     public void handle(Event event, Entity en, ItemReference r) {
         switch (event) {
-            case GhostEvent e -> handle(e, en, r);
+            case EmfEvent e -> handle(e, en, r);
             default -> {
             }
         }
@@ -24,11 +24,11 @@ public class EMF_Reader implements Equipment {
         return ItemProvider.getEMFReader(0);
     }
 
-    private void handle(GhostEvent ghostEvent, Entity entity, ItemReference r) {
-        if (entity.getPosition().distanceSquared(ghostEvent.getOrigin()) <= 25) {
-            r.set(ItemProvider.getEMFReader(ghostEvent.getEmfLevel()));
+    private void handle(EmfEvent emfEvent, Entity entity, ItemReference r) {
+        if (entity.getPosition().distanceSquared(emfEvent.getOrigin()) <= 25) {
+            r.set(ItemProvider.getEMFReader(emfEvent.getEmfLevel()));
 
-            ghostEvent.getGameContext().getScheduler().run(r.hashCode() + "", (isFirstRun) -> {
+            emfEvent.getGameContext().getScheduler().run(r.hashCode() + "", (isFirstRun) -> {
                 if (isFirstRun) return TaskSchedule.seconds(1);
 
                 int level = 5 - r.get().get(DataComponents.DAMAGE);

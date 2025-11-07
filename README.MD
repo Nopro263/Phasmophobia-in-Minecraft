@@ -12,6 +12,7 @@
 - lights in house
 - [x] sanity chart
 - multiple cameras
+- ghost events
 - equipment
     - [x] camera
     - [x] flashlight

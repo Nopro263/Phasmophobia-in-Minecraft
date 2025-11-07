@@ -1,6 +1,6 @@
 package at.nopro.phasmo.game;
 
-import at.nopro.phasmo.event.GhostEvent;
+import at.nopro.phasmo.event.EmfEvent;
 import at.nopro.phasmo.event.PlayerDieEvent;
 import at.nopro.phasmo.event.SanityDrainEvent;
 import net.minestom.server.entity.GameMode;
@@ -47,7 +47,7 @@ public class PlayerManager {
             throw new RuntimeException("too many players in lobby");
         }
 
-        player.setTag(SANITY, 100);
+        player.setTag(SANITY, 50);
         player.setTag(ALIVE, true);
         player.setTag(PLAYERCOLORTAG, textColors.getFirst());
     }
@@ -60,26 +60,12 @@ public class PlayerManager {
         );
     }
 
-    @ApiStatus.Internal
-    public void onGhostEvent(GhostEvent ghostEvent) {
-        RoomManager.Room room = gameContext.getRoomManager().getRoom(ghostEvent.getOrigin());
-        if (room == null) {
-            return;
-        }
-        for (Player player : room.getPlayers()) {
-            if (player.getTag(ALIVE)) {
-                int oldSanity = player.getTag(SANITY);
-                int newSanity = Math.max(oldSanity - 2, 0);
-                if (oldSanity != newSanity) {
-                    gameContext.getEventNode().call(new SanityDrainEvent(
-                            gameContext,
-                            player,
-                            newSanity,
-                            oldSanity
-                    ));
-                }
-            }
-        }
+    public List<Player> getAlivePlayers() {
+        return gameContext.getInstance().getPlayers().stream().filter(this::isAlive).toList();
+    }
+
+    public boolean isAlive(Player player) {
+        return player.getTag(ALIVE) != null && player.getTag(ALIVE);
     }
 
     @ApiStatus.Internal
@@ -104,8 +90,26 @@ public class PlayerManager {
         player.setTag(SANITY, sanity);
     }
 
-    public boolean isAlive(Player player) {
-        return player.getTag(ALIVE);
+    @ApiStatus.Internal
+    public void onGhostEvent(EmfEvent emfEvent) {
+        RoomManager.Room room = gameContext.getRoomManager().getRoom(emfEvent.getOrigin());
+        if (room == null) {
+            return;
+        }
+        for (Player player : room.getAlivePlayers()) {
+            if (player.getTag(ALIVE)) {
+                int oldSanity = player.getTag(SANITY);
+                int newSanity = Math.max(oldSanity - 2, 0);
+                if (oldSanity != newSanity) {
+                    gameContext.getEventNode().call(new SanityDrainEvent(
+                            gameContext,
+                            player,
+                            newSanity,
+                            oldSanity
+                    ));
+                }
+            }
+        }
     }
 
     @ApiStatus.Internal
@@ -115,7 +119,7 @@ public class PlayerManager {
 
     public void showKillAnimation(Player player) {
         player.sendPacket(new ChangeGameStatePacket(ChangeGameStatePacket.Reason.PLAYER_ELDER_GUARDIAN_MOB_APPEARANCE, 1));
-        player.addEffect(new Potion(PotionEffect.DARKNESS, 0, 2));
+        player.addEffect(new Potion(PotionEffect.DARKNESS, 0, 5));
     }
 
     public void kill(Player player) {

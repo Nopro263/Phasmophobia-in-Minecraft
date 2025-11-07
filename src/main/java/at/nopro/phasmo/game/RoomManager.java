@@ -115,6 +115,15 @@ public class RoomManager {
             }).toList();
         }
 
+        public List<Player> getAlivePlayers() {
+            return gameContext.getInstance().getPlayers().stream().filter((p) -> {
+                if (p == gameContext.getCamPlayer()) {
+                    return false;
+                }
+                return contains(p.getPosition()) && gameContext.getPlayerManager().isAlive(p);
+            }).toList();
+        }
+
         public boolean contains(Point point) {
             for (RoomPart bb : boundingBoxes) {
                 if (bb.contains(point)) {

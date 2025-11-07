@@ -1,6 +1,6 @@
 package at.nopro.phasmo.game;
 
-import at.nopro.phasmo.event.GhostEvent;
+import at.nopro.phasmo.event.EmfEvent;
 import net.minestom.server.timer.TaskSchedule;
 import org.jetbrains.annotations.ApiStatus;
 
@@ -33,9 +33,9 @@ public class ActivityManager {
     }
 
     @ApiStatus.Internal
-    public void onGhostEvent(GhostEvent ghostEvent) {
+    public void onGhostEvent(EmfEvent emfEvent) {
         synchronized (ActivityManager.this) {
-            currentActivity += ghostEvent.getEmfLevel();
+            currentActivity += emfEvent.getEmfLevel();
         }
     }
 
