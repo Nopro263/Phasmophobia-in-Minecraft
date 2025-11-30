@@ -107,21 +107,11 @@ public class RoomManager {
         }
 
         public List<Player> getPlayers() {
-            return gameContext.getInstance().getPlayers().stream().filter((p) -> {
-                if (p == gameContext.getCamPlayer()) {
-                    return false;
-                }
-                return contains(p.getPosition());
-            }).toList();
+            return gameContext.getPlayerManager().getPlayers().stream().filter((p) -> contains(p.getPosition())).toList();
         }
 
         public List<Player> getAlivePlayers() {
-            return gameContext.getInstance().getPlayers().stream().filter((p) -> {
-                if (p == gameContext.getCamPlayer()) {
-                    return false;
-                }
-                return contains(p.getPosition()) && gameContext.getPlayerManager().isAlive(p);
-            }).toList();
+            return gameContext.getPlayerManager().getAlivePlayers().stream().filter((p) -> contains(p.getPosition())).toList();
         }
 
         public boolean contains(Point point) {

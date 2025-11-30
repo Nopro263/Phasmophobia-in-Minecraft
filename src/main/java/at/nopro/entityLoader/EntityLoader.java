@@ -48,7 +48,9 @@ public class EntityLoader extends AnvilLoader {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        return super.loadChunk(instance, chunkX, chunkZ);
+        Chunk chunk = super.loadChunk(instance, chunkX, chunkZ);
+        chunk.motionBlockingHeightmap().refresh(instance.getCachedDimensionType().minY());
+        return chunk;
     }
 
     private boolean loadMCA(Instance instance, int chunkX, int chunkZ) throws IOException {

@@ -24,7 +24,7 @@ public class ActivityManager {
             synchronized (ActivityManager.this) {
                 dataPoints[pointer++] = Math.min(currentActivity, 10);
                 pointer %= 60;
-                currentActivity = Math.max(0, Math.min(currentActivity, 10) - random.nextInt(11));
+                currentActivity = Math.max(0, Math.min(currentActivity, 10) - random.nextInt(5));
             }
 
             gameContext.getDisplayManager().drawActivity();

@@ -3,6 +3,7 @@ package at.nopro.phasmo.game;
 import at.nopro.phasmo.event.EmfEvent;
 import at.nopro.phasmo.event.PlayerDieEvent;
 import at.nopro.phasmo.event.SanityDrainEvent;
+import net.minestom.server.MinecraftServer;
 import net.minestom.server.entity.GameMode;
 import net.minestom.server.entity.Player;
 import net.minestom.server.network.packet.server.play.ChangeGameStatePacket;
@@ -34,7 +35,7 @@ public class PlayerManager {
 
     public void initPlayerData(Player player) {
         List<Color> textColors = new ArrayList<>(List.of(PLAYER_COLOR));
-        for (Player p : gameContext.getInstance().getPlayers()) {
+        for (Player p : getPlayers()) {
             if (p == player) {
                 continue;
             }
@@ -60,12 +61,20 @@ public class PlayerManager {
         );
     }
 
-    public List<Player> getAlivePlayers() {
-        return gameContext.getInstance().getPlayers().stream().filter(this::isAlive).toList();
+    public List<Player> getPlayers() {
+        return gameContext.getInstance().getPlayers().stream().filter(this::isParticipating).toList();
+    }
+
+    public boolean isParticipating(Player player) {
+        return player != gameContext.getCamPlayer();
     }
 
     public boolean isAlive(Player player) {
         return player.getTag(ALIVE) != null && player.getTag(ALIVE);
+    }
+
+    public List<Player> getAlivePlayers() {
+        return gameContext.getInstance().getPlayers().stream().filter(this::isParticipating).filter(this::isAlive).toList();
     }
 
     @ApiStatus.Internal
@@ -128,7 +137,7 @@ public class PlayerManager {
         player.setAllowFlying(true);
         player.setAutoViewable(false);
         player.addEffect(new Potion(PotionEffect.WITHER, 1, Potion.INFINITE_DURATION));
-        gameContext.getEventNode().call(new PlayerDieEvent(gameContext, player, false));
+        MinecraftServer.getGlobalEventHandler().call(new PlayerDieEvent(gameContext, player, false));
     }
 
     public void revive(Player player) {

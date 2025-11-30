@@ -9,7 +9,7 @@
 - [x] camera rendering
 - ghost behavior tree
 - fix ghost movement
-- lights in house
+- lights in house + fuse box
 - [x] sanity chart
 - multiple cameras
 - ghost events

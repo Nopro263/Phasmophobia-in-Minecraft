@@ -1,11 +1,14 @@
 package at.nopro.phasmo.game;
 
 import at.nopro.phasmo.Reflection;
+import at.nopro.phasmo.entity.InteractionEntity;
 import net.kyori.adventure.text.TextComponent;
 import net.minestom.server.component.DataComponents;
+import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.Entity;
 import net.minestom.server.entity.Player;
 import net.minestom.server.entity.metadata.other.ItemFrameMeta;
+import net.minestom.server.instance.block.Block;
 import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.Material;
 import net.minestom.server.map.framebuffers.LargeGraphics2DFramebuffer;
@@ -47,12 +50,32 @@ public class DisplayManager {
     private Robot camRobot;
     private Rectangle camRectangle;
 
+    private Pos floorBtnPos;
+
     public DisplayManager(GameContext gameContext) {
         this.gameContext = gameContext;
         this.mapCache = new MapDataPacket[gameContext.getMapContext().validLevels().size()][4];
     }
 
     public void init() {
+        InteractionEntity floorUp = new InteractionEntity(4);
+        floorUp.setAttack((_) -> this.increaseMapLevel());
+        floorUp.setAttack((_) -> this.increaseMapLevel());
+        floorUp.setBlock(Block.LIME_CONCRETE_POWDER);
+
+        Pos floorUpPos = floorBtnPos.add(0, 0.5, 0);
+        Pos floorDownPos = floorBtnPos.add(0, 0.5 + ( 4d / 16d ), 0);
+
+        floorUp.setInstance(gameContext.getInstance(), floorUpPos);
+
+        InteractionEntity floorDown = new InteractionEntity(4);
+        floorDown.setAttack((_) -> this.decreaseMapLevel());
+        floorDown.setAttack((_) -> this.decreaseMapLevel());
+        floorDown.setBlock(Block.RED_CONCRETE_POWDER);
+
+
+        floorDown.setInstance(gameContext.getInstance(), floorDownPos);
+
         gameContext.getScheduler().run(this.hashCode() + "VanCam", () -> {
             try {
                 drawCam();
@@ -122,52 +145,14 @@ public class DisplayManager {
         });
     }
 
-    public void drawMap() {
-
+    public void increaseMapLevel() {
+        currentMapLevel = Math.min(currentMapLevel + 1, gameContext.getMapContext().validLevels().size() - 1);
+        drawMap();
     }
 
-    public void drawSanity() {
-        render2x1(sanityCache, SANITY1, SANITY2, (g) -> {
-            g.setStroke(new BasicStroke(1));
-
-            int padding = 3;
-            int font_height = g.getFontMetrics().getHeight();
-
-            String average = "Average";
-            int average_width = g.getFontMetrics().stringWidth(average);
-            g.drawString(average, ( 128 * 2 - average_width ) / 2, font_height);
-
-            int top_y = font_height * 2;
-            int size_y = 128 - top_y;
-            int[] x = new int[]{ padding, padding + 128, padding, padding + 128 };
-            int[] y = new int[]{ top_y + padding, top_y + padding, top_y + padding + ( size_y / 2 ), top_y + padding + ( size_y / 2 ) };
-            int i = 0;
-            int sanity_sum = 0;
-
-            for (Player player : gameContext.getInstance().getPlayers()) {
-                if (player == gameContext.getCamPlayer()) {
-                    continue;
-                }
-                PlayerManager.PlayerData playerData = gameContext.getPlayerManager().getPlayerData(player);
-                sanity_sum += playerData.sanity();
-
-                renderPlayerSanity(padding, g,
-                        player.getUsername(),
-                        playerData.sanity(),
-                        playerData.alive(),
-                        playerData.color(),
-                        x[i], y[i]);
-                i++;
-            }
-
-            int average_int = sanity_sum / Math.max(i, 1);
-
-            String average_percent = average_int + "%";
-            int average_percent_width = g.getFontMetrics().stringWidth(average_percent);
-            g.drawString(average_percent, ( 128 * 2 - average_percent_width ) / 2, font_height * 2);
-
-            gameContext.getPlayerManager().setAverageSanity(average_int);
-        });
+    public void decreaseMapLevel() {
+        currentMapLevel = Math.max(0, currentMapLevel - 1);
+        drawMap();
     }
 
     private void renderMapAtLevel(int levelId, int level) {
@@ -266,6 +251,63 @@ public class DisplayManager {
         }
     }
 
+    public void drawMap() {
+        for (Player player : gameContext.getInstance().getPlayers()) {
+            for (MapDataPacket mp : mapCache[currentMapLevel]) {
+                player.sendPacket(mp);
+            }
+        }
+    }
+
+    public void sendAllCached(Player player) {
+        for (MapDataPacket[] m : List.of(sanityCache, activityCache, mapCache[currentMapLevel], camCache)) {
+            for (MapDataPacket mp : m) {
+                player.sendPacket(mp);
+            }
+        }
+    }
+
+    public void drawSanity() {
+        render2x1(sanityCache, SANITY1, SANITY2, (g) -> {
+            g.setStroke(new BasicStroke(1));
+
+            int padding = 3;
+            int font_height = g.getFontMetrics().getHeight();
+
+            String average = "Average";
+            int average_width = g.getFontMetrics().stringWidth(average);
+            g.drawString(average, ( 128 * 2 - average_width ) / 2, font_height);
+
+            int top_y = font_height * 2;
+            int size_y = 128 - top_y;
+            int[] x = new int[]{ padding, padding + 128, padding, padding + 128 };
+            int[] y = new int[]{ top_y + padding, top_y + padding, top_y + padding + ( size_y / 2 ), top_y + padding + ( size_y / 2 ) };
+            int i = 0;
+            int sanity_sum = 0;
+
+            for (Player player : gameContext.getPlayerManager().getPlayers()) {
+                PlayerManager.PlayerData playerData = gameContext.getPlayerManager().getPlayerData(player);
+                sanity_sum += playerData.sanity();
+
+                renderPlayerSanity(padding, g,
+                        player.getUsername(),
+                        playerData.sanity(),
+                        playerData.alive(),
+                        playerData.color(),
+                        x[i], y[i]);
+                i++;
+            }
+
+            int average_int = sanity_sum / Math.max(i, 1);
+
+            String average_percent = average_int + "%";
+            int average_percent_width = g.getFontMetrics().stringWidth(average_percent);
+            g.drawString(average_percent, ( 128 * 2 - average_percent_width ) / 2, font_height * 2);
+
+            gameContext.getPlayerManager().setAverageSanity(average_int);
+        });
+    }
+
     @ApiStatus.Internal
     public Entity modifyEntity(Entity entity) {
         if (entity.getEntityMeta() instanceof ItemFrameMeta itemFrameMeta) {
@@ -278,24 +320,12 @@ public class DisplayManager {
                             .set(DataComponents.MAP_ID, mapId)
                             .build());
                 }
+
+                if ("MAP4".equals(name)) {
+                    floorBtnPos = entity.getPosition();
+                }
             }
         }
         return entity;
-    }
-
-    public void sendAllCached(Player player) {
-        for (MapDataPacket[] m : List.of(sanityCache, activityCache, mapCache[currentMapLevel], camCache)) {
-            for (MapDataPacket mp : m) {
-                player.sendPacket(mp);
-            }
-        }
-    }
-
-    public void increaseMapLevel() {
-        currentMapLevel = Math.min(currentMapLevel + 1, gameContext.getMapContext().validLevels().size() - 1);
-    }
-
-    public void decreaseMapLevel() {
-        currentMapLevel = Math.max(0, currentMapLevel - 1);
     }
 }

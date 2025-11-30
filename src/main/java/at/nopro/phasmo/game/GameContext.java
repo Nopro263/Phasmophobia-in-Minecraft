@@ -3,9 +3,9 @@ package at.nopro.phasmo.game;
 import at.nopro.entityLoader.EntityLoader;
 import at.nopro.phasmo.content.equipment.Equipment;
 import at.nopro.phasmo.content.equipment.EquipmentManager;
+import at.nopro.phasmo.content.ghost.BaseGhost;
 import at.nopro.phasmo.content.ghost.TestGhost;
 import at.nopro.phasmo.entity.ItemEntity;
-import at.nopro.phasmo.entity.PhasmoEntity;
 import at.nopro.phasmo.entity.ai.PathCache;
 import at.nopro.phasmo.event.*;
 import at.nopro.phasmo.lighting.PhasmoChunk;
@@ -31,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class GameContext {
     private final MapContext mapContext;
-    public PhasmoEntity entity;
+    public BaseGhost entity;
     private InstanceContainer instance;
     private PathCache pathCache;
     private DisplayManager displayManager;
@@ -139,7 +139,7 @@ public class GameContext {
 
     private void listenToGlobalEvent(Class<? extends Event> clazz) {
         this.monitoringEventNode.addListener(clazz, (event) -> {
-            for (Player player : instance.getPlayers()) {
+            for (Player player : playerManager.getPlayers()) {
                 ItemReference ref = ItemTracker.track(player, player.getHeldSlot());
 
                 Equipment equipment = EquipmentManager.getEquipment(ref.get());

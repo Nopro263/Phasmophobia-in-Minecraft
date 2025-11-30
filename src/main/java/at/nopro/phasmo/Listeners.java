@@ -10,6 +10,7 @@ import net.minestom.server.entity.GameMode;
 import net.minestom.server.entity.Player;
 import net.minestom.server.event.Event;
 import net.minestom.server.event.EventNode;
+import net.minestom.server.event.entity.EntityAttackEvent;
 import net.minestom.server.event.player.*;
 import net.minestom.server.network.packet.server.play.PlayerInfoRemovePacket;
 import net.minestom.server.network.player.GameProfile;
@@ -96,6 +97,14 @@ public class Listeners {
 
         addListener(PlayerStartDiggingEvent.class, event -> {
             event.setCancelled(true);
+        });
+
+        addListener(EntityAttackEvent.class, event -> {
+            System.out.println("hit " + event.getTarget());
+        });
+
+        addListener(PlayerEntityInteractEvent.class, event -> {
+            System.out.println("interact " + event.getTarget());
         });
     }
 

@@ -5,6 +5,7 @@ import at.nopro.phasmo.entity.ItemEntity;
 import at.nopro.phasmo.event.AfterDropEvent;
 import at.nopro.phasmo.event.AfterPickupEvent;
 import at.nopro.phasmo.event.PlaceEquipmentEvent;
+import at.nopro.phasmo.event.PlayerDieEvent;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.entity.Entity;
 import net.minestom.server.entity.Player;
@@ -32,6 +33,7 @@ public class ItemTracker {
         node.setPriority(90);
         MinecraftServer.getGlobalEventHandler().addChild(node);
 
+        node.addListener(PlayerDieEvent.class, ItemTracker::handleDie);
         node.addListener(ItemDropEvent.class, ItemTracker::handleDrop);
         node.addListener(PlaceEquipmentEvent.class, ItemTracker::handlePlace);
         node.addListener(PlayerSwapItemEvent.class, ItemTracker::handleSwap);
@@ -59,6 +61,30 @@ public class ItemTracker {
         itemEntity.setInstance(event.getInstance(), player.getPosition().withPitch(0));
         GameContext gameContext = GameManager.getGame(event.getInstance());
         gameContext.getEventNode().call(new AfterDropEvent(itemEntity, gameContext, player));
+    }
+
+    private static void handleDie(PlayerDieEvent event) {
+        if (event.isNowAlive()) {
+            return;
+        }
+        final Player player = event.getPlayer();
+        for (int slot = 0; slot < player.getInventory().getSize(); slot++) {
+            Pair<Player, Integer> mainHandPair = new Pair<>(player, slot);
+            ItemReference mainHandTracker = playerSlotMap.get(mainHandPair);
+
+            if (mainHandTracker != null && !mainHandTracker.get().isAir()) {
+                ItemEntity itemEntity = new ItemEntity(mainHandTracker.get());
+                player.getInventory().setItemStack(slot, ItemStack.AIR, true);
+                mainHandTracker.setAsEntity(itemEntity);
+                playerSlotMap.remove(mainHandPair);
+                itemMap.put(itemEntity, mainHandTracker);
+
+                itemEntity.setInstance(player.getInstance(), player.getPosition().withPitch(0));
+                GameContext gameContext = GameManager.getGame(player.getInstance());
+                gameContext.getEventNode().call(new AfterDropEvent(itemEntity, gameContext, player));
+            }
+        }
+
     }
 
     private static void handlePlace(PlaceEquipmentEvent event) {

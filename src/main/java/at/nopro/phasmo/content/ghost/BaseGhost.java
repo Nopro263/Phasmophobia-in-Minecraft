@@ -29,6 +29,10 @@ public class BaseGhost extends PhasmoEntity {
         getAttribute(Attribute.MOVEMENT_SPEED).setBaseValue(0.15);
     }
 
+    public String getPositionAsString() {
+        return "[" + getPosition().x() + ", " + getPosition().y() + ", " + getPosition().z() + "]";
+    }
+
     @Override
     public @NotNull BoundingBox getBoundingBox() {
         return new BoundingBox(0.2, 1.2, 0.2);

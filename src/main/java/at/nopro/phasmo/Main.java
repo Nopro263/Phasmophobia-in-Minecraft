@@ -19,7 +19,11 @@ import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.Player;
 import net.minestom.server.entity.ai.GoalSelector;
 import net.minestom.server.entity.pathfinding.PNode;
+import net.minestom.server.listener.preplay.HandshakeListener;
+import net.minestom.server.network.ConnectionState;
+import net.minestom.server.network.packet.client.handshake.ClientHandshakePacket;
 import net.minestom.server.network.packet.server.play.ParticlePacket;
+import net.minestom.server.network.player.PlayerConnection;
 import net.minestom.server.particle.Particle;
 import net.minestom.server.timer.TaskSchedule;
 
@@ -62,6 +66,7 @@ public class Main {
         }
 
         MinecraftServer minecraftServer = MinecraftServer.init(auth);
+        MinecraftServer.getPacketListenerManager().setListener(ConnectionState.HANDSHAKE, ClientHandshakePacket.class, Main::handshakeListener);
 
         if ("mojang".equals(config.mcServer.auth)) {
             new MojangAuthWithExceptions();
@@ -99,9 +104,9 @@ public class Main {
                 GoalSelector goalSelector = context.entity.getAIGroups().stream().findFirst().get().getCurrentGoalSelector();
                 String n;
                 if (goalSelector == null) {
-                    n = "---";
+                    n = "--- " + context.entity.getPositionAsString();
                 } else {
-                    n = goalSelector.getClass().getSimpleName();
+                    n = goalSelector.getClass().getSimpleName() + " " + context.entity.getPositionAsString();
                 }
 
                 player.sendActionBar(Component.text(n));
@@ -110,6 +115,16 @@ public class Main {
         });
 
         minecraftServer.start(config.mcServer.host, config.mcServer.port);
+    }
+
+    private static void handshakeListener(ClientHandshakePacket packet, PlayerConnection playerConnection) {
+        ClientHandshakePacket packet1 = new ClientHandshakePacket(
+                packet.protocolVersion(),
+                packet.serverAddress(),
+                packet.serverPort(),
+                packet.intent() == ClientHandshakePacket.Intent.TRANSFER ? ClientHandshakePacket.Intent.LOGIN : packet.intent()
+        );
+        HandshakeListener.listener(packet1, playerConnection);
     }
 
     private static class Test4 extends Command {
