@@ -24,7 +24,7 @@ public final class RadialLightSource implements LightSource {
         y -= source.blockY();
         z -= source.blockZ();
 
-        int d = (int) Math.sqrt(x * x + y * y + z * z);
+        int d = (int) Math.sqrt(x * x + y * y + z * z) - 1;
 
         return strength - d;
     }

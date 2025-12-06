@@ -8,20 +8,19 @@ import at.nopro.phasmo.game.CameraManager;
 import at.nopro.phasmo.game.GameContext;
 import at.nopro.phasmo.game.GameManager;
 import at.nopro.phasmo.game.ItemTracker;
+import at.nopro.phasmo.lighting.PhasmoChunk;
 import dev.lu15.voicechat.VoiceChat;
 import net.kyori.adventure.text.Component;
 import net.minestom.server.Auth;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.command.builder.Command;
 import net.minestom.server.command.builder.arguments.ArgumentType;
-import net.minestom.server.coordinate.BlockVec;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.Player;
 import net.minestom.server.entity.ai.GoalSelector;
 import net.minestom.server.entity.pathfinding.PNode;
 import net.minestom.server.instance.block.Block;
-import net.minestom.server.instance.heightmap.Heightmap;
 import net.minestom.server.listener.preplay.HandshakeListener;
 import net.minestom.server.network.ConnectionState;
 import net.minestom.server.network.packet.client.handshake.ClientHandshakePacket;
@@ -76,14 +75,6 @@ public class Main {
             new MojangAuthWithExceptions();
         }
 
-        if (config.devMode) {
-            MinecraftServer.getCommandManager().register(new Test());
-            MinecraftServer.getCommandManager().register(new Test2());
-            MinecraftServer.getCommandManager().register(new Test3());
-            MinecraftServer.getCommandManager().register(new Test4());
-            MinecraftServer.getCommandManager().register(new Test5());
-        }
-
         ResourcePackProvider.init();
         Listeners.init();
         ItemTracker.init();
@@ -94,6 +85,14 @@ public class Main {
         EquipmentManager.register(new Thermometer());
         EquipmentManager.register(new Flashlight());
         EquipmentManager.register(new DOTS_Projector());
+
+        if (config.devMode) {
+            MinecraftServer.getCommandManager().register(new Test());
+            MinecraftServer.getCommandManager().register(new Test2());
+            MinecraftServer.getCommandManager().register(new Test3());
+            MinecraftServer.getCommandManager().register(new Test4());
+            MinecraftServer.getCommandManager().register(new Test5());
+        }
 
         GameManager.createGame("default", Maps.TANGLEWOOD_DRIVE);
         if (config.voicechat.enabled) {
@@ -135,19 +134,20 @@ public class Main {
     private static class Test5 extends Command {
 
         public Test5() {
-            super("heightmap");
+            super("neighbours");
 
             addSyntax((sender, ctx) -> {
                 if (sender instanceof Player player) {
-                    Heightmap hm = player.getChunk().motionBlockingHeightmap();
+                    PhasmoChunk chunk = (PhasmoChunk) player.getChunk();
+                    int own = chunk.getLightSources().size();
+                    int neighbours = 0;
 
-                    for (int i = 0; i < 16; i++) {
-                        for (int j = 0; j < 16; j++) {
-                            int y = hm.getHeight(i, j);
-
-                            player.sendPacket(new BlockChangePacket(new BlockVec(player.getChunk().getChunkX() * 16 + i, y, player.getChunk().getChunkZ() * 16 + j), Block.STONE));
-                        }
+                    for (PhasmoChunk pc : chunk.getNeighbours()) {
+                        neighbours += pc.getLightSources().size();
+                        player.sendPacket(new BlockChangePacket(chunk.toPosition(), Block.LIME_CONCRETE_POWDER));
                     }
+
+                    player.sendMessage(( own + neighbours ) + " (" + own + ":" + neighbours + ")");
                 }
             });
         }

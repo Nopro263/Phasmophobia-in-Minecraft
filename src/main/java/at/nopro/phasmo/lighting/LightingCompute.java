@@ -26,9 +26,10 @@ public abstract class LightingCompute {
         List<byte[]> blockLights = new ArrayList<>();
 
         List<Section> sections = chunk.getSections();
+        List<PhasmoChunk> neighbours = chunk.getNeighbours();
 
         for (int sectionIndex = 0; sectionIndex < sections.size(); sectionIndex++) {
-            generateLightForSection(chunk, dimensionType, skyMask, blockMask, skyLights, blockLights, sectionIndex);
+            generateLightForSection(chunk, neighbours, dimensionType, skyMask, blockMask, skyLights, blockLights, sectionIndex);
         }
 
         emptySkyMask.set(0, sections.size());
@@ -41,12 +42,20 @@ public abstract class LightingCompute {
 
     private static void generateLightForSection(
             PhasmoChunk chunk,
+            List<PhasmoChunk> neighbours,
             DimensionType dimensionType,
             BitSet skyMask,
             BitSet blockMask,
             List<byte[]> skyLights,
             List<byte[]> blockLights,
             int sectionIndex) {
+
+        List<LightSource> lightSources = new ArrayList<>();
+        lightSources.addAll(chunk.getLightSources());
+
+        for (PhasmoChunk c : neighbours) {
+            lightSources.addAll(c.getLightSources());
+        }
 
         int byteIndex = 0;
         int byteShift = 0; // 0 or 4
@@ -78,7 +87,7 @@ public abstract class LightingCompute {
                     int gY = ( sectionIndex - 1 ) * 16 + y + dimensionType.minY();
                     int gZ = chunk.getChunkZ() * 16 + z;
 
-                    for (LightSource lightSource : chunk.getLightSources()) {
+                    for (LightSource lightSource : lightSources) {
                         if (lightSource instanceof FloodedLightSource floodedLightSource) {
                             if (floodedLightSource.inRange(gX, gY, gZ)) {
                                 blockLightValue = floodedLightSource.getLevel();

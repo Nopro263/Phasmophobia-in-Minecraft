@@ -14,28 +14,6 @@ public final class FloodedLightSource implements LightSource {
         this.size = size.asBlockVec();
         this.level = level;
         this.position2 = position.add(size).asBlockVec();
-
-        checkInSingleChunk();
-    }
-
-    private void checkInSingleChunk() {
-        if (this.size.blockX() > 16) {
-            throw new RuntimeException("x > 16");
-        }
-        if (this.size.blockY() > 16) {
-            throw new RuntimeException("y > 16");
-        }
-        if (this.size.blockZ() > 16) {
-            throw new RuntimeException("z > 16");
-        }
-
-        if (!this.position.sameChunk(this.position.add(size))) {
-            throw new RuntimeException("flooded light source extending over multiple chunks");
-        }
-
-        if (this.position.sectionY() != this.position.add(size).sectionY()) {
-            throw new RuntimeException("not in same Y section");
-        }
     }
 
     public BlockVec getPosition() {
