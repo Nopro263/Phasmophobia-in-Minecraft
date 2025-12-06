@@ -7,10 +7,12 @@ public final class FloodedLightSource implements LightSource {
     private final BlockVec position;
     private final BlockVec position2;
     private final BlockVec size;
+    private final int level;
 
-    public FloodedLightSource(Point position, Point size) {
+    public FloodedLightSource(Point position, Point size, int level) {
         this.position = position.asBlockVec();
         this.size = size.asBlockVec();
+        this.level = level;
         this.position2 = position.add(size).asBlockVec();
 
         checkInSingleChunk();
@@ -46,6 +48,10 @@ public final class FloodedLightSource implements LightSource {
 
     public BlockVec getSize() {
         return size;
+    }
+
+    public int getLevel() {
+        return level;
     }
 
     public boolean inRange(int x, int y, int z) {

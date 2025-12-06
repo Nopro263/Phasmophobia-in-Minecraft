@@ -81,8 +81,13 @@ public abstract class LightingCompute {
                     for (LightSource lightSource : chunk.getLightSources()) {
                         if (lightSource instanceof FloodedLightSource floodedLightSource) {
                             if (floodedLightSource.inRange(gX, gY, gZ)) {
-                                blockLightValue = 15;
+                                blockLightValue = floodedLightSource.getLevel();
                                 break;
+                            }
+                        } else if (lightSource instanceof RadialLightSource radialLightSource) {
+                            int level = radialLightSource.getLevelAtPosition(gX, gY, gZ);
+                            if (level > 0) {
+                                blockLightValue = level;
                             }
                         }
                     }

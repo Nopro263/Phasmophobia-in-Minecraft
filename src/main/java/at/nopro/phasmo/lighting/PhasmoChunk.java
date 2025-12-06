@@ -19,11 +19,15 @@ public class PhasmoChunk extends DynamicChunk {
 
     public List<LightSource> getLightSources() {
         if (getChunkX() == 1 && getChunkZ() == -1) {
-            return List.of(new FloodedLightSource(new BlockVec(20, -42, -2), new BlockVec(3, 2, 1)));
+            return List.of(new FloodedLightSource(new BlockVec(20, -42, -2), new BlockVec(3, 2, 1), 14));
         }
 
         if (getChunkX() == 1 && getChunkZ() == 0) {
-            return List.of(new FloodedLightSource(new BlockVec(20, -42, 0), new BlockVec(3, 2, 7)));
+            return List.of(new FloodedLightSource(new BlockVec(20, -42, 0), new BlockVec(3, 2, 7), 14));
+        }
+
+        if (getChunkX() == 1 && getChunkZ() == 1) {
+            return List.of(new RadialLightSource(new BlockVec(23, -42, 24), 15));
         }
         return List.of();
     }

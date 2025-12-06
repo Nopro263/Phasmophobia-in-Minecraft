@@ -1,0 +1,31 @@
+package at.nopro.phasmo.lighting;
+
+import net.minestom.server.coordinate.BlockVec;
+
+public final class RadialLightSource implements LightSource {
+    private final BlockVec source;
+    private final int strength;
+
+    public RadialLightSource(BlockVec source, int strength) {
+        this.source = source;
+        this.strength = strength;
+    }
+
+    public BlockVec getSource() {
+        return source;
+    }
+
+    public int getStrength() {
+        return strength;
+    }
+
+    public int getLevelAtPosition(int x, int y, int z) {
+        x -= source.blockX();
+        y -= source.blockY();
+        z -= source.blockZ();
+
+        int d = (int) Math.sqrt(x * x + y * y + z * z);
+
+        return strength - d;
+    }
+}
