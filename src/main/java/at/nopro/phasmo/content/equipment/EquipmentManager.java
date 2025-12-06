@@ -2,6 +2,7 @@ package at.nopro.phasmo.content.equipment;
 
 import net.minestom.server.item.ItemStack;
 import net.minestom.server.tag.Tag;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
@@ -23,11 +24,17 @@ public class EquipmentManager {
         return getInternal(clazz.getSimpleName());
     }
 
+    @ApiStatus.Internal
     public static Equipment getInternal(String name) {
         if (!equipmentMap.containsKey(name)) {
             throw new RuntimeException("Unknown Equipment " + name);
         }
         return equipmentMap.get(name);
+    }
+
+    @ApiStatus.Internal
+    public static String[] getAllRegistered() {
+        return equipmentMap.keySet().toArray(new String[0]);
     }
 
     public static @Nullable Equipment getEquipment(ItemStack itemStack) {

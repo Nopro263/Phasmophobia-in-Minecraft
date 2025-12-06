@@ -172,11 +172,17 @@ public class Main {
         public Test3() {
             super("give");
 
-            var t = ArgumentType.String("eq");
+            var t = ArgumentType.Word("equipmentType").from(EquipmentManager.getAllRegistered());
 
             addSyntax((sender, ctx) -> {
                 if (sender instanceof Player player) {
-                    Equipment e = EquipmentManager.getInternal(ctx.get(t));
+                    Equipment e;
+                    try {
+                        e = EquipmentManager.getInternal(ctx.get(t));
+                    } catch (RuntimeException _) {
+                        player.sendMessage("Error");
+                        return;
+                    }
                     player.setItemInMainHand(e.getDefault());
                 }
             }, t);
