@@ -16,7 +16,7 @@ public class PhasmoChunk extends DynamicChunk {
 
     @Override
     protected LightData createLightData(boolean requiredFullChunk) {
-        return LightingCompute.generateLightForChunk(this);
+        return NewLightingCompute.generateLightForChunk(this);
     }
 
     public List<LightSource> getLightSources() {

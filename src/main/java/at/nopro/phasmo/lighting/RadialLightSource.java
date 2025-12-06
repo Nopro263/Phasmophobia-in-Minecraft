@@ -2,7 +2,7 @@ package at.nopro.phasmo.lighting;
 
 import net.minestom.server.coordinate.BlockVec;
 
-public final class RadialLightSource implements LightSource {
+public final class RadialLightSource implements PointLightSource {
     private final BlockVec source;
     private final int strength;
 
@@ -11,6 +11,7 @@ public final class RadialLightSource implements LightSource {
         this.strength = strength;
     }
 
+    @Override
     public BlockVec getSource() {
         return source;
     }
@@ -24,8 +25,7 @@ public final class RadialLightSource implements LightSource {
         y -= source.blockY();
         z -= source.blockZ();
 
-        int d = (int) Math.sqrt(x * x + y * y + z * z) - 1;
-
+        int d = (int) Math.sqrt(x * x + y * y + z * z);
         return strength - d;
     }
 }
