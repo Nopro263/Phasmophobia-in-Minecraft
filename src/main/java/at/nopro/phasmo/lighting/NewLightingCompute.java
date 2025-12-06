@@ -1,6 +1,7 @@
 package at.nopro.phasmo.lighting;
 
 import net.minestom.server.coordinate.Point;
+import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.Section;
 import net.minestom.server.network.packet.server.play.data.LightData;
 import net.minestom.server.world.DimensionType;
@@ -12,15 +13,15 @@ public abstract class NewLightingCompute {
     private static final int OUTSIDE_LIGHT = 7;
     private static final int INSIDE_LIGHT = 0;
 
-    public static @NotNull LightData generateLightForChunk(PhasmoChunk chunk) {
+    public static @NotNull LightData generateLightForChunk(PhasmoChunk chunk, Set<ExternalLight> externalLights) {
         try {
-            return generateLightForChunk(chunk, chunk.getInstance().getCachedDimensionType());
+            return generateLightForChunk(chunk, chunk.getInstance().getCachedDimensionType(), externalLights);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    private static @NotNull LightData generateLightForChunk(PhasmoChunk chunk, DimensionType dimensionType) {
+    private static @NotNull LightData generateLightForChunk(PhasmoChunk chunk, DimensionType dimensionType, Set<ExternalLight> externalLights) {
         BitSet skyMask = new BitSet();
         BitSet blockMask = new BitSet();
         BitSet emptySkyMask = new BitSet();
@@ -39,17 +40,20 @@ public abstract class NewLightingCompute {
         }*/
 
         ArrayDeque<Light> lights = new ArrayDeque<>();
+        for (ExternalLight externalLight : externalLights) { // weird artifacts on opposite side of neighbouring chunk
+            lights.add(externalLight.light); // may cause cyclic lights
+        }
 
         for (LightSource lightSource : lightSources) {
             if (lightSource instanceof PointLightSource pointLightSource) {
-                placeLightAt(pointLightSource.getSource(), blockMask, blockLights, dimensionType, lights, 15);
+                placeLightAt(pointLightSource.getSource(), chunk.getInstance(), blockMask, blockLights, dimensionType, lights, 15);
             }
         }
 
         while (!lights.isEmpty()) {
             Light light = lights.remove();
 
-            placeLightAt(light.point, blockMask, blockLights, dimensionType, lights, light.level);
+            placeLightAt(light.point, chunk.getInstance(), blockMask, blockLights, dimensionType, lights, light.level);
         }
 
 
@@ -63,6 +67,7 @@ public abstract class NewLightingCompute {
 
     private static void placeLightAt(
             Point point,
+            Instance instance,
             BitSet mask,
             List<byte[]> lightData,
             DimensionType dimensionType,
@@ -82,18 +87,11 @@ public abstract class NewLightingCompute {
         data[index] = o;
 
         if (level > 1) {
-            if (point.blockZ() % 16 != 15) {
-                propagateLightTo(point.add(0, 0, 1), mask, lightData, section, lightsToCompute, level - 1);
-            }
-            if (point.blockX() % 16 != 15) {
-                propagateLightTo(point.add(1, 0, 0), mask, lightData, section, lightsToCompute, level - 1);
-            }
-            if (point.blockZ() % 16 != 0) {
-                propagateLightTo(point.add(0, 0, -1), mask, lightData, section, lightsToCompute, level - 1);
-            }
-            if (point.blockX() % 16 != 0) {
-                propagateLightTo(point.add(-1, 0, 0), mask, lightData, section, lightsToCompute, level - 1);
-            }
+            propagateLightTo(point, point.add(0, 0, 1), instance, mask, lightData, section, lightsToCompute, level - 1);
+            propagateLightTo(point, point.add(1, 0, 0), instance, mask, lightData, section, lightsToCompute, level - 1);
+            propagateLightTo(point, point.add(0, 0, -1), instance, mask, lightData, section, lightsToCompute, level - 1);
+            propagateLightTo(point, point.add(-1, 0, 0), instance, mask, lightData, section, lightsToCompute, level - 1);
+
         }
     }
 
@@ -123,13 +121,28 @@ public abstract class NewLightingCompute {
     }
 
     private static void propagateLightTo(
+            Point from,
             Point point,
+            Instance instance,
             BitSet mask,
             List<byte[]> lightData,
             int section,
             Queue<Light> lightsToCompute,
             int newLevel
     ) {
+        if (instance.getBlock(point).isSolid()) {
+            return;
+        }
+        if (!from.sameChunk(point)) {
+            if (!( instance.getChunkAt(point) instanceof PhasmoChunk owner )) {
+                throw new RuntimeException("ahah");
+            }
+
+            if (instance.getChunkAt(point) instanceof PhasmoChunk pc) {
+                pc.addExternalLight(new ExternalLight(owner, new Light(point, newLevel)));
+            }
+        }
+
         byte[] data = getByteArrayForSection(section, mask, lightData);
         double indexAndShift = getIndexForPoint(point);
 
@@ -155,5 +168,8 @@ public abstract class NewLightingCompute {
     }
 
     private record Light(Point point, int level) {
+    }
+
+    public record ExternalLight(PhasmoChunk owner, Light light) {
     }
 }

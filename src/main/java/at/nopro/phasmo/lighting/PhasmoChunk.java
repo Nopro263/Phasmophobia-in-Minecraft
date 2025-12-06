@@ -5,18 +5,25 @@ import net.minestom.server.instance.Chunk;
 import net.minestom.server.instance.DynamicChunk;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.network.packet.server.play.data.LightData;
+import org.jetbrains.annotations.ApiStatus;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class PhasmoChunk extends DynamicChunk {
+    private final Set<NewLightingCompute.ExternalLight> externalLights;
+
     public PhasmoChunk(Instance instance, int chunkX, int chunkZ) {
         super(instance, chunkX, chunkZ);
+
+        externalLights = new HashSet<>();
     }
 
     @Override
     protected LightData createLightData(boolean requiredFullChunk) {
-        return NewLightingCompute.generateLightForChunk(this);
+        return NewLightingCompute.generateLightForChunk(this, externalLights);
     }
 
     public List<LightSource> getLightSources() {
@@ -47,5 +54,10 @@ public class PhasmoChunk extends DynamicChunk {
             }
         }
         return chunks;
+    }
+
+    @ApiStatus.Internal
+    void addExternalLight(NewLightingCompute.ExternalLight externalLight) {
+        externalLights.add(externalLight);
     }
 }
