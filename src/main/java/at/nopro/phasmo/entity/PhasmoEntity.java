@@ -3,6 +3,7 @@ package at.nopro.phasmo.entity;
 import at.nopro.phasmo.entity.ai.InvalidPositionException;
 import at.nopro.phasmo.game.GameContext;
 import at.nopro.phasmo.game.RoomManager;
+import at.nopro.phasmo.lighting.LightSource;
 import net.minestom.server.collision.BoundingBox;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.entity.EntityCreature;
@@ -67,5 +68,9 @@ public class PhasmoEntity extends EntityCreature {
 
     public GameContext getGameContext() {
         return gameContext;
+    }
+
+    public LightSource getLightSource() {
+        return null;
     }
 }

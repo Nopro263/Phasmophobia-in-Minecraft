@@ -20,6 +20,11 @@ public final class RadialLightSource implements PointLightSource {
         return strength;
     }
 
+    @Override
+    public long getId() {
+        return this.hashCode();
+    }
+
     public int getLevelAtPosition(int x, int y, int z) {
         x -= source.blockX();
         y -= source.blockY();

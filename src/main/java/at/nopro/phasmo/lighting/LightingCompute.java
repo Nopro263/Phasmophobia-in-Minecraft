@@ -98,6 +98,13 @@ public abstract class LightingCompute {
                             if (level > 0) {
                                 blockLightValue = level;
                             }
+                        } else if (lightSource instanceof ConeLightSource coneLightSource) {
+                            int level = coneLightSource.getLevelAtPosition(gX, gY, gZ);
+                            if (level > 0) {
+                                blockLightValue = level;
+                            }
+                        } else {
+                            throw new RuntimeException("unknown light source");
                         }
                     }
                     // END

@@ -16,6 +16,11 @@ public final class FloodedLightSource implements LightSource {
         this.position2 = position.add(size).asBlockVec();
     }
 
+    @Override
+    public long getId() {
+        return this.hashCode();
+    }
+
     public BlockVec getPosition() {
         return position;
     }
