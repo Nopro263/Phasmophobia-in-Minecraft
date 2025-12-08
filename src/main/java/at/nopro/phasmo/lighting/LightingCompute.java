@@ -90,7 +90,7 @@ public abstract class LightingCompute {
                     for (LightSource lightSource : lightSources) {
                         if (lightSource instanceof FloodedLightSource floodedLightSource) {
                             if (floodedLightSource.inRange(gX, gY, gZ)) {
-                                blockLightValue = floodedLightSource.getLevel();
+                                blockLightValue = floodedLightSource.getSourceLevel();
                                 break;
                             }
                         } else if (lightSource instanceof RadialLightSource radialLightSource) {

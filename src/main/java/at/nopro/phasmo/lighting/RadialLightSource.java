@@ -12,12 +12,13 @@ public final class RadialLightSource implements PointLightSource {
     }
 
     @Override
-    public BlockVec getSource() {
-        return source;
+    public int getSourceLevel() {
+        return strength;
     }
 
-    public int getStrength() {
-        return strength;
+    @Override
+    public BlockVec getPosition() {
+        return source;
     }
 
     public int getLevelAtPosition(int x, int y, int z) {

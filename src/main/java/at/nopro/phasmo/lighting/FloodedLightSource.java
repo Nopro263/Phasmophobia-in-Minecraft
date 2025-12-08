@@ -28,7 +28,8 @@ public final class FloodedLightSource implements LightSource {
         return size;
     }
 
-    public int getLevel() {
+    @Override
+    public int getSourceLevel() {
         return level;
     }
 
@@ -36,5 +37,15 @@ public final class FloodedLightSource implements LightSource {
         return position.blockX() <= x && x <= position2.blockX() &&
                 position.blockY() <= y && y <= position2.blockY() &&
                 position.blockZ() <= z && z <= position2.blockZ();
+    }
+
+    @Override
+    public int modifyLevelAtPoint(Point point, int originalLevel) {
+        return inRange(point.blockX(), point.blockY(), point.blockZ()) ? 15 : 0;
+    }
+
+    @Override
+    public boolean canPropagateFrom(Point point, int level) {
+        return inRange(point.blockX(), point.blockY(), point.blockZ());
     }
 }

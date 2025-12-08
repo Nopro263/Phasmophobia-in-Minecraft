@@ -4,26 +4,37 @@ import net.minestom.server.coordinate.BlockVec;
 import net.minestom.server.instance.Chunk;
 import net.minestom.server.instance.DynamicChunk;
 import net.minestom.server.instance.Instance;
+import net.minestom.server.network.packet.server.CachedPacket;
+import net.minestom.server.network.packet.server.play.UpdateLightPacket;
 import net.minestom.server.network.packet.server.play.data.LightData;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class PhasmoChunk extends DynamicChunk {
-    private final Set<NewLightingCompute.ExternalLight> externalLights;
+    private final Map<Chunk, Set<NewLightingCompute.ExternalLight>> externalLights;
+    private Set<NewLightingCompute.ExternalLight> previousExternalLights;
+    private PhasmoChunk currentModifyingChunk;
+    private LightData oldLightData;
+    private final CachedPacket cachedLightPacket = new CachedPacket(this::createLightPacket);
 
     public PhasmoChunk(Instance instance, int chunkX, int chunkZ) {
         super(instance, chunkX, chunkZ);
 
-        externalLights = new HashSet<>();
+        externalLights = new HashMap<>();
     }
 
-    @Override
-    protected LightData createLightData(boolean requiredFullChunk) {
-        return NewLightingCompute.generateLightForChunk(this, externalLights);
+    private UpdateLightPacket createLightPacket() {
+        return new UpdateLightPacket(chunkX, chunkZ, createLightData(false));
+    }
+
+    @ApiStatus.Internal
+    void addExternalLight(NewLightingCompute.ExternalLight externalLight) {
+        if (externalLight.owner() != currentModifyingChunk) {
+            throw new RuntimeException("huh???");
+        }
+        externalLights.putIfAbsent(externalLight.owner(), new HashSet<>()).add(externalLight);
     }
 
     public List<LightSource> getLightSources() {
@@ -57,7 +68,47 @@ public class PhasmoChunk extends DynamicChunk {
     }
 
     @ApiStatus.Internal
-    void addExternalLight(NewLightingCompute.ExternalLight externalLight) {
-        externalLights.add(externalLight);
+    void removeAllExternalLightsComingFromChunk(PhasmoChunk phasmoChunk) {
+        previousExternalLights = externalLights.get(phasmoChunk);
+        currentModifyingChunk = phasmoChunk;
+        externalLights.put(phasmoChunk, new HashSet<>());
+    }
+
+    @ApiStatus.Internal
+    void invalidateChunkIfLightsChanged() {
+        if (previousExternalLights == null) {
+            cachedLightPacket.invalidate();
+            resendLight();
+        } else {
+            int diff = Math.abs(previousExternalLights.size() - externalLights.get(currentModifyingChunk).size());
+
+            if (diff >= 1) {
+                cachedLightPacket.invalidate();
+                resendLight();
+                System.out.println(diff);
+            }
+        }
+    }
+
+    public void resendLight() {
+        if (this.isLoaded()) {
+            this.sendPacketToViewers(cachedLightPacket);
+        }
+    }
+
+    @Override
+    public void invalidate() {
+        super.invalidate();
+        cachedLightPacket.invalidate();
+    }
+
+    @Override
+    protected @NotNull LightData createLightData(boolean requiredFullChunk) {
+        Set<NewLightingCompute.ExternalLight> combinedLights = new HashSet<>();
+        for (Set<NewLightingCompute.ExternalLight> e : externalLights.values()) {
+            combinedLights.addAll(e);
+        }
+        oldLightData = NewLightingCompute.generateLightForChunk(this, combinedLights, oldLightData);
+        return oldLightData;
     }
 }
