@@ -8,7 +8,7 @@ import at.nopro.phasmo.content.ghost.TestGhost;
 import at.nopro.phasmo.entity.ItemEntity;
 import at.nopro.phasmo.entity.ai.PathCache;
 import at.nopro.phasmo.event.*;
-import at.nopro.phasmo.lightingv2.PhasmoChunk;
+import at.nopro.phasmo.lightingv3.IngamePhasmoChunk;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.coordinate.CoordConversion;
 import net.minestom.server.coordinate.Pos;
@@ -61,7 +61,7 @@ public class GameContext {
             e = this.roomManager.parseEntity(e);
             return e;
         }));
-        instance.setChunkSupplier(PhasmoChunk::new);
+        instance.setChunkSupplier(IngamePhasmoChunk::new);
         instance.setTimeRate(0);
 
         instance.setTime(mapContext.time());

@@ -42,6 +42,10 @@ public class PhasmoChunk extends LightingChunk {
         super(instance, chunkX, chunkZ);
     }
 
+    /*
+     * Calls calculateInternal and calculateExternal on Light
+     * Calls Light.getNeighbors for calculateExternal
+     * */
     private static Set<Chunk> flushQueue(Instance instance, Set<Point> queue, LightType type, QueueType queueType) {
         Set<Light> sections = ConcurrentHashMap.newKeySet();
         Set<Point> newQueue = ConcurrentHashMap.newKeySet();
@@ -96,16 +100,16 @@ public class PhasmoChunk extends LightingChunk {
                 Palette blockPalette = section.blockPalette();
                 CompletableFuture<Void> task = CompletableFuture.runAsync(() -> {
                     try {
-                        Set var1001;
-                        switch (queueType.ordinal()) {
-                            case 0 ->
-                                    var1001 = light.calculateInternal(blockPalette, chunk.getChunkX(), point.blockY(), chunk.getChunkZ(), lightingChunk.getOcclusionMap(), chunk.getInstance().getCachedDimensionType().maxY(), lightLookup);
-                            case 1 ->
-                                    var1001 = light.calculateExternal(blockPalette, Light.getNeighbors(chunk, point.blockY()), lightLookup, paletteLookup);
-                            default -> throw new MatchException(null, null);
+                        Set<Point> toAdd;
+                        switch (queueType) {
+                            case INTERNAL ->
+                                    toAdd = LightInterceptor.calculateInternal(light, blockPalette, chunk.getChunkX(), point.blockY(), chunk.getChunkZ(), lightingChunk.getOcclusionMap(), chunk.getInstance().getCachedDimensionType().maxY(), lightLookup);
+                            case EXTERNAL ->
+                                    toAdd = LightInterceptor.calculateExternal(light, blockPalette, Light.getNeighbors(chunk, point.blockY()), lightLookup, paletteLookup);
+                            default -> throw new RuntimeException("");
                         }
 
-                        Set<Point> toAdd = var1001;
+
                         sections.add(light);
                         light.flip();
                         newQueue.addAll(toAdd);
@@ -179,7 +183,7 @@ public class PhasmoChunk extends LightingChunk {
         for (int x = point.blockX() - 1; x <= point.blockX() + 1; ++x) {
             for (int z = point.blockZ() - 1; z <= point.blockZ() + 1; ++z) {
                 Chunk chunkCheck = instance.getChunk(x, z);
-                if (chunkCheck != null && chunkCheck instanceof PhasmoChunk lighting) {
+                if (chunkCheck instanceof PhasmoChunk lighting) {
                     lighting.getOcclusionMap();
                     highestRegionPoint = Math.max(highestRegionPoint, lighting.highestBlock);
                 }
@@ -228,11 +232,6 @@ public class PhasmoChunk extends LightingChunk {
         return found;
     }
 
-    static Set<Chunk> relightSection(Instance instance, int chunkX, int sectionY, int chunkZ) {
-        HashSet<Chunk> res = new HashSet(relightSection(instance, chunkX, sectionY, chunkZ, LightType.BLOCK));
-        res.addAll(relightSection(instance, chunkX, sectionY, chunkZ, LightType.SKY));
-        return res;
-    }
 
     private static Set<Chunk> relightSection(Instance instance, int chunkX, int sectionY, int chunkZ, LightType type) {
         Chunk c = instance.getChunk(chunkX, chunkZ);
@@ -300,6 +299,9 @@ public class PhasmoChunk extends LightingChunk {
         }
     }
 
+    /*
+     * Checks what sections have to be updated and calls relightSection on them
+     * */
     @Override
     protected LightData createLightData(boolean requiredFullChunk) {
         this.packetGenerationLock.lock();
@@ -307,12 +309,10 @@ public class PhasmoChunk extends LightingChunk {
         try {
             if (requiredFullChunk) {
                 if (this.fullLightData != null) {
-                    LightData var2 = this.fullLightData;
-                    return var2;
+                    return this.fullLightData;
                 }
             } else if (this.partialLightData != null) {
-                LightData var21 = this.partialLightData;
-                return var21;
+                return this.partialLightData;
             }
 
             BitSet skyMask = new BitSet();
@@ -327,7 +327,7 @@ public class PhasmoChunk extends LightingChunk {
             for (int i = -1; i <= 1; ++i) {
                 for (int j = -1; j <= 1; ++j) {
                     Chunk neighborChunk = this.instance.getChunk(this.chunkX + i, this.chunkZ + j);
-                    if (neighborChunk != null && neighborChunk instanceof PhasmoChunk light) {
+                    if (neighborChunk instanceof PhasmoChunk light) {
                         light.getOcclusionMap();
                         highestNeighborBlock = Math.max(highestNeighborBlock, light.highestBlock);
                     }
