@@ -13,6 +13,7 @@
 - [x] sanity chart
 - multiple cameras
 - ghost events
+- split code into core, content, remove many events
 - equipment
     - [x] camera
     - [x] flashlight

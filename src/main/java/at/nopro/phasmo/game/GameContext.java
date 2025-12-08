@@ -8,7 +8,7 @@ import at.nopro.phasmo.content.ghost.TestGhost;
 import at.nopro.phasmo.entity.ItemEntity;
 import at.nopro.phasmo.entity.ai.PathCache;
 import at.nopro.phasmo.event.*;
-import at.nopro.phasmo.lighting.PhasmoChunk;
+import at.nopro.phasmo.lightingv2.PhasmoChunk;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.coordinate.CoordConversion;
 import net.minestom.server.coordinate.Pos;
