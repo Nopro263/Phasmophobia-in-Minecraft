@@ -9,6 +9,7 @@ import at.nopro.phasmo.entity.ItemEntity;
 import at.nopro.phasmo.entity.ai.PathCache;
 import at.nopro.phasmo.event.*;
 import at.nopro.phasmo.lightingv3.IngamePhasmoChunk;
+import at.nopro.phasmo.lightingv3.PhasmoInstance;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.coordinate.CoordConversion;
 import net.minestom.server.coordinate.Pos;
@@ -55,7 +56,7 @@ public class GameContext {
         this.displayManager = new DisplayManager(this);
         this.roomManager = new RoomManager(this);
 
-        instance = MinecraftServer.getInstanceManager().createInstanceContainer();
+        instance = new PhasmoInstance(this);
         instance.setChunkLoader(new EntityLoader(mapContext.worldPath(), (e) -> {
             e = this.displayManager.modifyEntity(e);
             e = this.roomManager.parseEntity(e);

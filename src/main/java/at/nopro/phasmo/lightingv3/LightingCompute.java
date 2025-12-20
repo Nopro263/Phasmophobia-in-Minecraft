@@ -1,5 +1,6 @@
-package at.nopro.phasmo.lighting;
+package at.nopro.phasmo.lightingv3;
 
+import at.nopro.phasmo.lighting.LightSource;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.Section;
@@ -10,11 +11,11 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-public abstract class NewLightingCompute {
+public abstract class LightingCompute {
     private static final int OUTSIDE_LIGHT = 7;
     private static final int INSIDE_LIGHT = 0;
 
-    public static @NotNull LightData generateLightForChunk(PhasmoChunk chunk, Set<ExternalLight> externalLights, LightData oldLightData) {
+    public static @NotNull LightData generateLightForChunk(IngamePhasmoChunk chunk, Set<ExternalLight> externalLights, LightData oldLightData) {
         try {
             return generateLightForChunk(chunk, chunk.getInstance().getCachedDimensionType(), externalLights, oldLightData);
         } catch (Exception e) {
@@ -22,7 +23,7 @@ public abstract class NewLightingCompute {
         }
     }
 
-    private static @NotNull LightData generateLightForChunk(PhasmoChunk chunk, DimensionType dimensionType, Set<ExternalLight> externalLights, LightData oldLightData) {
+    private static @NotNull LightData generateLightForChunk(IngamePhasmoChunk chunk, DimensionType dimensionType, Set<ExternalLight> externalLights, LightData oldLightData) {
         BitSet skyMask = new BitSet();
         BitSet blockMask = new BitSet();
         BitSet emptySkyMask = new BitSet();
@@ -31,12 +32,12 @@ public abstract class NewLightingCompute {
         List<byte[]> blockLights = new ArrayList<>();
 
         List<Section> sections = chunk.getSections();
-        List<PhasmoChunk> neighbours = chunk.getNeighbours();
+        List<IngamePhasmoChunk> neighbours = chunk.getNeighbours();
 
         List<LightSource> lightSources = new ArrayList<>();
         lightSources.addAll(chunk.getLightSources());
 
-        for (PhasmoChunk c : neighbours) {
+        for (IngamePhasmoChunk c : neighbours) {
             c.removeAllExternalLightsComingFromChunk(chunk);
         }
 
@@ -65,7 +66,7 @@ public abstract class NewLightingCompute {
             placeLightAt(light.point, light.lightSource, chunk.getInstance(), blockMask, blockLights, dimensionType, lights, light.level);
         }
 
-        for (PhasmoChunk c : neighbours) {
+        for (IngamePhasmoChunk c : neighbours) {
             c.invalidateChunkIfLightsChanged();
         }
 
@@ -179,11 +180,11 @@ public abstract class NewLightingCompute {
             return;
         }
         if (!from.sameChunk(point)) {
-            if (!( instance.getChunkAt(from) instanceof PhasmoChunk owner )) {
+            if (!( instance.getChunkAt(from) instanceof IngamePhasmoChunk owner )) {
                 throw new RuntimeException("ahah");
             }
 
-            if (instance.getChunkAt(point) instanceof PhasmoChunk pc) {
+            if (instance.getChunkAt(point) instanceof IngamePhasmoChunk pc) {
                 pc.addExternalLight(new ExternalLight(owner, new Light(point, lightSource, newLevel)));
             }
             return;
@@ -226,10 +227,10 @@ public abstract class NewLightingCompute {
         }
     }
 
-    public record ExternalLight(PhasmoChunk owner, Light light) {
+    public record ExternalLight(IngamePhasmoChunk owner, Light light) {
         @Override
         public boolean equals(Object obj) {
-            if (!( obj instanceof ExternalLight(PhasmoChunk owner1, Light light1) )) return false;
+            if (!( obj instanceof ExternalLight(IngamePhasmoChunk owner1, Light light1) )) return false;
             return owner.equals(owner1) && this.light.lightSource.equals(light1.lightSource) && this.light.point.equals(light1.point);
         }
 
@@ -239,13 +240,13 @@ public abstract class NewLightingCompute {
         }
 
         public Light getWrappedLight() {
-            PhasmoChunk[] owners;
+            IngamePhasmoChunk[] owners;
             if (light.lightSource instanceof ExternalWrappedLightSource e) {
-                owners = new PhasmoChunk[e.getOwners().length + 1];
+                owners = new IngamePhasmoChunk[e.getOwners().length + 1];
                 owners[0] = owner;
                 System.arraycopy(e.getOwners(), 0, owners, 1, e.getOwners().length);
             } else {
-                owners = new PhasmoChunk[]{ owner };
+                owners = new IngamePhasmoChunk[]{ owner };
             }
 
             return new Light(
