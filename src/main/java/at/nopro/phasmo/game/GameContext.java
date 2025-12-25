@@ -25,9 +25,9 @@ import net.minestom.server.event.player.PlayerBlockInteractEvent;
 import net.minestom.server.event.player.PlayerChangeHeldSlotEvent;
 import net.minestom.server.event.player.PlayerMoveEvent;
 import net.minestom.server.event.trait.EntityEvent;
+import net.minestom.server.instance.Chunk;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.InstanceContainer;
-import net.minestom.server.instance.LightingChunk;
 import org.jetbrains.annotations.NotNull;
 
 public class GameContext {
@@ -81,7 +81,13 @@ public class GameContext {
             }
         }
 
-        LightingChunk.relight(instance, instance.getChunks());
+        for (Chunk c : instance.getChunks()) {
+            if (c instanceof IngamePhasmoChunk i) {
+                i.createLightData(true);
+            }
+        }
+
+        //LightingChunk.relight(instance, instance.getChunks());
 
         System.out.println("Loaded chunks in " + ( System.currentTimeMillis() - start ) + "ms");
 

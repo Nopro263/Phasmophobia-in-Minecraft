@@ -8,6 +8,7 @@ import net.minestom.server.coordinate.Point;
 import net.minestom.server.instance.Chunk;
 import net.minestom.server.instance.DynamicChunk;
 import net.minestom.server.instance.Instance;
+import net.minestom.server.instance.Section;
 import net.minestom.server.network.packet.server.CachedPacket;
 import net.minestom.server.network.packet.server.play.UpdateLightPacket;
 import net.minestom.server.network.packet.server.play.data.LightData;
@@ -21,7 +22,9 @@ public class IngamePhasmoChunk extends DynamicChunk {
     private Set<LightingCompute.ExternalLight> previousExternalLights;
     private IngamePhasmoChunk currentModifyingChunk;
     private LightData oldLightData;
+    boolean toggle;
     private final CachedPacket cachedLightPacket = new CachedPacket(this::createLightPacket);
+    private LightData bakedLightData;
 
     public IngamePhasmoChunk(Instance instance, int chunkX, int chunkZ) {
         super(instance, chunkX, chunkZ);
@@ -33,6 +36,30 @@ public class IngamePhasmoChunk extends DynamicChunk {
         return new UpdateLightPacket(chunkX, chunkZ, createLightData(false));
     }
 
+    public void bake() {
+        bakedLightData = createLightData(true);
+    }
+
+    @Override
+    public @NotNull LightData createLightData(boolean requiredFullChunk) {
+        System.out.print("Chunk[" + chunkX + "," + chunkZ + "] started lighting");
+        long start = System.currentTimeMillis();
+
+        for (Section section : sections) {
+
+        }
+
+        long diff = System.currentTimeMillis() - start;
+        System.out.print("\r");
+        System.out.println("Chunk[" + chunkX + "," + chunkZ + "] finished in " + ( diff ) + "ms");
+
+        return oldLightData;
+    }
+
+    public void toggle() {
+        toggle = !toggle;
+    }
+
     @ApiStatus.Internal
     void addExternalLight(LightingCompute.ExternalLight externalLight) {
         if (externalLight.owner() != currentModifyingChunk) {
@@ -41,15 +68,8 @@ public class IngamePhasmoChunk extends DynamicChunk {
         externalLights.putIfAbsent(externalLight.owner(), new HashSet<>()).add(externalLight);
     }
 
-    public List<LightSource> getLightSources() {
-        if (getChunkX() == 1 && getChunkZ() == -1) {
-            return List.of(new FloodedLightSource(new BlockVec(20, -42, -2), new BlockVec(3, 2, 9), 14));
-        }
-
-        if (getChunkX() == 1 && getChunkZ() == 1) {
-            return List.of(new RadialLightSource(new BlockVec(23, -42, 24), 15));
-        }
-        return List.of();
+    public LightData getBakedLightData() {
+        return bakedLightData;
     }
 
     public List<IngamePhasmoChunk> getNeighbours() {
@@ -89,7 +109,6 @@ public class IngamePhasmoChunk extends DynamicChunk {
             if (diff >= 1) {
                 cachedLightPacket.invalidate();
                 resendLight();
-                System.out.println(diff);
             }
         }
     }
@@ -106,13 +125,36 @@ public class IngamePhasmoChunk extends DynamicChunk {
         cachedLightPacket.invalidate();
     }
 
-    @Override
-    protected @NotNull LightData createLightData(boolean requiredFullChunk) {
+    public List<LightSource> getLightSources() {
+        if (getChunkX() == 1 && getChunkZ() == -1) {
+            return List.of(new FloodedLightSource(new BlockVec(20, -42, -2), new BlockVec(3, 2, 9), 14));
+        }
+
+        if (getChunkX() == 1 && getChunkZ() == 1) {
+            List<LightSource> lightSources = new ArrayList<>();
+            lightSources.add(new RadialLightSource(new BlockVec(23, -42, 24), 5));
+            if (toggle) {
+                lightSources.add(new RadialLightSource(new BlockVec(23, -41, 24), 15));
+            }
+            return lightSources;
+        }
+        return List.of();
+    }
+
+    public @NotNull LightData OldcreateLightData(boolean requiredFullChunk) {
+        System.out.print("Chunk[" + chunkX + "," + chunkZ + "] started lighting");
+        long start = System.currentTimeMillis();
+
         Set<LightingCompute.ExternalLight> combinedLights = new HashSet<>();
         for (Set<LightingCompute.ExternalLight> e : externalLights.values()) {
             combinedLights.addAll(e);
         }
         oldLightData = LightingCompute.generateLightForChunk(this, combinedLights, oldLightData);
+
+        long diff = System.currentTimeMillis() - start;
+        System.out.print("\r");
+        System.out.println("Chunk[" + chunkX + "," + chunkZ + "] finished in " + ( diff ) + "ms");
+
         return oldLightData;
     }
 

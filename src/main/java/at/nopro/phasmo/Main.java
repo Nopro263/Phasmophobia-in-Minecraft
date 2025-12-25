@@ -8,7 +8,7 @@ import at.nopro.phasmo.game.CameraManager;
 import at.nopro.phasmo.game.GameContext;
 import at.nopro.phasmo.game.GameManager;
 import at.nopro.phasmo.game.ItemTracker;
-import at.nopro.phasmo.lighting.PhasmoChunk;
+import at.nopro.phasmo.lightingv3.IngamePhasmoChunk;
 import dev.lu15.voicechat.VoiceChat;
 import net.kyori.adventure.text.Component;
 import net.minestom.server.Auth;
@@ -20,11 +20,9 @@ import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.Player;
 import net.minestom.server.entity.ai.GoalSelector;
 import net.minestom.server.entity.pathfinding.PNode;
-import net.minestom.server.instance.block.Block;
 import net.minestom.server.listener.preplay.HandshakeListener;
 import net.minestom.server.network.ConnectionState;
 import net.minestom.server.network.packet.client.handshake.ClientHandshakePacket;
-import net.minestom.server.network.packet.server.play.BlockChangePacket;
 import net.minestom.server.network.packet.server.play.ParticlePacket;
 import net.minestom.server.network.player.PlayerConnection;
 import net.minestom.server.particle.Particle;
@@ -92,6 +90,7 @@ public class Main {
             MinecraftServer.getCommandManager().register(new Test3());
             MinecraftServer.getCommandManager().register(new Test4());
             MinecraftServer.getCommandManager().register(new Test5());
+            MinecraftServer.getCommandManager().register(new Test6());
         }
 
         GameManager.createGame("default", Maps.TANGLEWOOD_DRIVE);
@@ -131,23 +130,37 @@ public class Main {
         HandshakeListener.listener(packet1, playerConnection);
     }
 
-    private static class Test5 extends Command {
+    private static class Test6 extends Command {
 
-        public Test5() {
-            super("neighbours");
+        public Test6() {
+            super("toggleLight");
 
             addSyntax((sender, ctx) -> {
                 if (sender instanceof Player player) {
-                    PhasmoChunk chunk = (PhasmoChunk) player.getChunk();
-                    int own = chunk.getLightSources().size();
-                    int neighbours = 0;
+                    IngamePhasmoChunk chunk = (IngamePhasmoChunk) player.getChunk();
 
-                    for (PhasmoChunk pc : chunk.getNeighbours()) {
-                        neighbours += pc.getLightSources().size();
-                        player.sendPacket(new BlockChangePacket(chunk.toPosition(), Block.LIME_CONCRETE_POWDER));
-                    }
+                    chunk.toggle();
+                    chunk.invalidate();
+                    chunk.resendLight();
 
-                    player.sendMessage(( own + neighbours ) + " (" + own + ":" + neighbours + ")");
+                    player.sendMessage("toggled");
+                }
+            });
+        }
+    }
+
+    private static class Test5 extends Command {
+
+        public Test5() {
+            super("bake");
+
+            addSyntax((sender, ctx) -> {
+                if (sender instanceof Player player) {
+                    IngamePhasmoChunk chunk = (IngamePhasmoChunk) player.getChunk();
+
+                    chunk.bake();
+
+                    player.sendMessage("baked");
                 }
             });
         }

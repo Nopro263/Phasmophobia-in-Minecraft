@@ -1,5 +1,6 @@
 package at.nopro.phasmo.game;
 
+import at.nopro.phasmo.Configuration;
 import at.nopro.phasmo.Reflection;
 import at.nopro.phasmo.entity.InteractionEntity;
 import net.kyori.adventure.text.TextComponent;
@@ -100,6 +101,7 @@ public class DisplayManager {
     }
 
     public void drawCam() throws AWTException {
+        if (!Configuration.config.camera.enabled) return;
         if (camRobot == null) {
             GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices()[0];
             camRobot = new Robot(gd);

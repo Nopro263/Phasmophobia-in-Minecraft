@@ -10,6 +10,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 public abstract class LightingCompute {
     private static final int OUTSIDE_LIGHT = 7;
@@ -24,12 +25,14 @@ public abstract class LightingCompute {
     }
 
     private static @NotNull LightData generateLightForChunk(IngamePhasmoChunk chunk, DimensionType dimensionType, Set<ExternalLight> externalLights, LightData oldLightData) {
-        BitSet skyMask = new BitSet();
-        BitSet blockMask = new BitSet();
+        LightData bakedLightData = chunk.getBakedLightData();
+
+        BitSet skyMask = bakedLightData == null ? new BitSet() : (BitSet) bakedLightData.skyMask().clone();
+        BitSet blockMask = bakedLightData == null ? new BitSet() : (BitSet) bakedLightData.blockMask().clone();
         BitSet emptySkyMask = new BitSet();
         BitSet emptyBlockMask = new BitSet();
-        List<byte[]> skyLights = new ArrayList<>();
-        List<byte[]> blockLights = new ArrayList<>();
+        List<byte[]> skyLights = new ArrayList<>(bakedLightData == null ? List.of() : copy(bakedLightData.skyLight()));
+        List<byte[]> blockLights = new ArrayList<>(bakedLightData == null ? List.of() : copy(bakedLightData.blockLight()));
 
         List<Section> sections = chunk.getSections();
         List<IngamePhasmoChunk> neighbours = chunk.getNeighbours();
@@ -60,10 +63,27 @@ public abstract class LightingCompute {
             );
         }
 
-        while (!lights.isEmpty()) {
-            Light light = lights.remove();
+        List<CompletableFuture<Void>> tasks = new ArrayList<>();
 
-            placeLightAt(light.point, light.lightSource, chunk.getInstance(), blockMask, blockLights, dimensionType, lights, light.level);
+        while (true) {
+            while (!lights.isEmpty()) {
+                Light light;
+                try {
+                    light = lights.remove();
+                } catch (NoSuchElementException _) {
+                    continue;
+                }
+
+                tasks.add(CompletableFuture.runAsync(() -> {
+                    placeLightAt(light.point, light.lightSource, chunk.getInstance(), blockMask, blockLights, dimensionType, lights, light.level);
+                }));
+            }
+            for (CompletableFuture<Void> task : tasks) {
+                task.join();
+            }
+            if (lights.isEmpty()) {
+                break;
+            }
         }
 
         for (IngamePhasmoChunk c : neighbours) {
@@ -77,6 +97,16 @@ public abstract class LightingCompute {
         emptyBlockMask.set(0, sections.size());
         emptyBlockMask.andNot(blockMask);
         return new LightData(skyMask, blockMask, emptySkyMask, emptyBlockMask, skyLights, blockLights);
+    }
+
+    private static List<byte[]> copy(List<byte[]> input) {
+        List<byte[]> output = new ArrayList<>(input.size());
+
+        for (byte[] inputByte : input) {
+            output.add(Arrays.copyOf(inputByte, inputByte.length));
+        }
+
+        return output;
     }
 
     private static void placeLightAt(
@@ -108,12 +138,12 @@ public abstract class LightingCompute {
         data[index] = o;
 
         if (level > 1 && ( lightSource == null || lightSource.canPropagateFrom(point, level) )) {
-            propagateLightTo(point, point.add(0, 0, 1), lightSource, instance, mask, lightData, section, lightsToCompute, level - 2);
-            propagateLightTo(point, point.add(1, 0, 0), lightSource, instance, mask, lightData, section, lightsToCompute, level - 2);
-            propagateLightTo(point, point.add(0, 0, -1), lightSource, instance, mask, lightData, section, lightsToCompute, level - 2);
-            propagateLightTo(point, point.add(-1, 0, 0), lightSource, instance, mask, lightData, section, lightsToCompute, level - 2);
-            propagateLightTo(point, point.add(0, 1, 0), lightSource, instance, mask, lightData, section, lightsToCompute, level - 2);
-            propagateLightTo(point, point.add(0, -1, 0), lightSource, instance, mask, lightData, section, lightsToCompute, level - 2);
+            propagateLightTo(point, point.add(0, 0, 1), lightSource, instance, mask, lightData, section, lightsToCompute, level - 1);
+            propagateLightTo(point, point.add(1, 0, 0), lightSource, instance, mask, lightData, section, lightsToCompute, level - 1);
+            propagateLightTo(point, point.add(0, 0, -1), lightSource, instance, mask, lightData, section, lightsToCompute, level - 1);
+            propagateLightTo(point, point.add(-1, 0, 0), lightSource, instance, mask, lightData, section, lightsToCompute, level - 1);
+            propagateLightTo(point, point.add(0, 1, 0), lightSource, instance, mask, lightData, section, lightsToCompute, level - 1);
+            propagateLightTo(point, point.add(0, -1, 0), lightSource, instance, mask, lightData, section, lightsToCompute, level - 1);
 
             /*propagateLightTo(point, point.add(1, 0, 1), lightSource, instance, mask, lightData, section, lightsToCompute, level - 1);
             propagateLightTo(point, point.add(-1, 0, 1), lightSource, instance, mask, lightData, section, lightsToCompute, level - 1);
@@ -199,7 +229,9 @@ public abstract class LightingCompute {
         int oldLevel = ( data[index] >> shift ) & 15;
 
         if (newLevel > 0 && newLevel > oldLevel) {
-            lightsToCompute.add(new Light(point, lightSource, newLevel));
+            synchronized (lightsToCompute) {
+                lightsToCompute.add(new Light(point, lightSource, newLevel));
+            }
         }
     }
 
