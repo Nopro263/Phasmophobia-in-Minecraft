@@ -7,6 +7,7 @@ import net.minestom.server.coordinate.BlockVec;
 import net.minestom.server.instance.Chunk;
 import net.minestom.server.instance.DynamicChunk;
 import net.minestom.server.instance.Instance;
+import net.minestom.server.instance.palette.Palette;
 import net.minestom.server.network.packet.server.CachedPacket;
 import net.minestom.server.network.packet.server.play.UpdateLightPacket;
 import net.minestom.server.network.packet.server.play.data.LightData;
@@ -81,12 +82,14 @@ public class IngamePhasmoChunk extends DynamicChunk {
         }
         vanLightSource = phasmoInstance.getGameContext().getMapContext().vanLightSource();
 
-        for (int i = -1; i < sections.size() + 1; i++) {
+        for (int i = 0; i < sections.size(); i++) {
             int sectionMinY = i * 16 + minY;
 
             int finalI = i;
             tasks.add(CompletableFuture.runAsync(() -> {
                 SectionLight sectionLight = getSectionLight(finalI);
+                Palette blockPalette = sections.get(finalI).blockPalette();
+
 
                 byte[] vanLight = new byte[2048];
 
@@ -96,6 +99,7 @@ public class IngamePhasmoChunk extends DynamicChunk {
                         sectionMinY,
                         chunkMinX,
                         chunkMinZ,
+                        blockPalette,
                         vanLightSource
                 );
 
