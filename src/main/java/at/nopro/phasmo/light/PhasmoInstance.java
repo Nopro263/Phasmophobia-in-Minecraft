@@ -1,4 +1,4 @@
-package at.nopro.phasmo.lightingv3;
+package at.nopro.phasmo.light;
 
 import at.nopro.phasmo.game.GameContext;
 import net.kyori.adventure.key.Key;

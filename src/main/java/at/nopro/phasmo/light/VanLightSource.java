@@ -1,4 +1,4 @@
-package at.nopro.phasmo.lightingv3;
+package at.nopro.phasmo.light;
 
 import net.minestom.server.coordinate.Point;
 

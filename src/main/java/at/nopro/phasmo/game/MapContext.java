@@ -1,7 +1,7 @@
 package at.nopro.phasmo.game;
 
 
-import at.nopro.phasmo.lightingv3.VanLightSource;
+import at.nopro.phasmo.light.VanLightSource;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.utils.Direction;
 

@@ -1,4 +1,4 @@
-package at.nopro.phasmo.lightingv3;
+package at.nopro.phasmo.light;
 
 import it.unimi.dsi.fastutil.ints.IntArrayFIFOQueue;
 import net.minestom.server.collision.Shape;
@@ -20,12 +20,18 @@ public final class LightCompute {
     private LightCompute() {
     }
 
+    /**
+     * combines all light-byte-arrays into a new 2048 byte big one, using the biggest value for each nibble.
+     * if a passed array is null, we treat it like an empty array
+     *
+     * @param content the arrays to combine
+     * @return a new combined byte array
+     */
     public static byte[] bake(byte[]... content) {
         byte[] out = new byte[2048];
 
         for (byte[] c : content) {
             if (c == null) {
-                //throw new NullPointerException("content contains null values");
                 c = EMPTY_CONTENT;
             }
 
@@ -35,6 +41,12 @@ public final class LightCompute {
         return out;
     }
 
+    /**
+     * combine two byte arrays, using the bigger nibble for each
+     *
+     * @param content the first array to combine
+     * @param out     the second array to combine and also the destination
+     */
     private static void internalBake(byte[] content, byte[] out) {
         for (int i = 0; i < content.length; ++i) {
             byte c1 = content[i];
@@ -49,6 +61,16 @@ public final class LightCompute {
         }
     }
 
+    /**
+     * generates the light values for skylights
+     * if the block is above the heightmap, its value is levelAbove
+     * else it is zero
+     *
+     * @param light         output light array
+     * @param heightmap     heightmap of all (motion-blocking) blocks
+     * @param levelAbove    the light-level above the heightmap
+     * @param sectionStartY the global Y-coordinate of the current section
+     */
     public static void computeSectionSkyLight(byte[] light, Heightmap heightmap, int levelAbove, int sectionStartY) {
         for (int x = 0; x < 16; x++) {
             for (int z = 0; z < 16; z++) {
@@ -82,6 +104,19 @@ public final class LightCompute {
         light[index >> 1] = value;
     }
 
+    /**
+     * calculate the light level for the van
+     * sets the level between the two points in vanLightSource to vanLevel
+     * propagates light outwards
+     *
+     * @param light          the destination array
+     * @param vanLevel       the light-level inside the van
+     * @param sectionStartY  global Y-coordinate of the current section
+     * @param sectionStartX  global X-coordinate of the current section
+     * @param sectionStartZ  global Z-coordinate of the current section
+     * @param blockPalette   blockPalette of the current section
+     * @param vanLightSource the VanLightSource to determine the 2 points where we want light to be
+     */
     public static void computeSectionVanLight(byte[] light, int vanLevel, int sectionStartY, int sectionStartX, int sectionStartZ, Palette blockPalette, VanLightSource vanLightSource) {
         IntArrayFIFOQueue shortArrayFIFOQueue = new IntArrayFIFOQueue();
 
@@ -108,7 +143,14 @@ public final class LightCompute {
     }
 
     /**
-     * @param lightPre shorts queue in format: [10bit nothing][6bit allowed light directions][4bit light level][4bit y][4bit z][4bit x]
+     * places all lights from lightPre and then spreads all lights using a bfs-search
+     * but:
+     * the allowed-light-directions specify in what direction this "ray" can propagate
+     * they are updated for each subsequent light after hitting a non-air block -> this removes the going around corners completely
+     *
+     * @param blockPalette the blockPalette for the current section
+     * @param lightPre     int queue in format: [10bit unused][6bit allowed light directions][4bit light level][4bit y][4bit z][4bit x]
+     * @param lightArray   the output destination
      */
     private static void compute(Palette blockPalette, IntArrayFIFOQueue lightPre, byte[] lightArray) {
 
@@ -151,11 +193,17 @@ public final class LightCompute {
                     continue;
                 }
 
+                final Block currentBlock = Objects.requireNonNullElse(getBlock(blockPalette, x, y, z), Block.AIR);
                 final Block propagatedBlock = Objects.requireNonNullElse(getBlock(blockPalette, xO, yO, zO), Block.AIR);
 
-                if (!propagatedBlock.isSolid()) {
-                    newAllowedDirections |= 1 << i;
-                }
+                final Shape currentShape = currentBlock.registry().occlusionShape();
+                final Shape propagatedShape = propagatedBlock.registry().occlusionShape();
+
+                final boolean airAir = currentBlock.isAir() && propagatedBlock.isAir();
+                if (!airAir && currentShape.isOccluded(propagatedShape, BlockFace.fromDirection(direction)))
+                    continue;
+
+                newAllowedDirections |= 1 << i;
             }
 
             newAllowedDirections &= allowedDirections;
