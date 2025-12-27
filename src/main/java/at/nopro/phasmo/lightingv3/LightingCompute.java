@@ -1,19 +1,7 @@
 package at.nopro.phasmo.lightingv3;
 
-import at.nopro.phasmo.lighting.LightSource;
-import net.minestom.server.coordinate.Point;
-import net.minestom.server.instance.Instance;
-import net.minestom.server.instance.Section;
-import net.minestom.server.network.packet.server.play.data.LightData;
-import net.minestom.server.world.DimensionType;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
-
 public abstract class LightingCompute {
-    private static final int OUTSIDE_LIGHT = 7;
+    /*private static final int OUTSIDE_LIGHT = 7;
     private static final int INSIDE_LIGHT = 0;
 
     public static @NotNull LightData generateLightForChunk(IngamePhasmoChunk chunk, Set<ExternalLight> externalLights, LightData oldLightData) {
@@ -24,7 +12,7 @@ public abstract class LightingCompute {
         }
     }
 
-    private static @NotNull LightData generateLightForChunk(IngamePhasmoChunk chunk, DimensionType dimensionType, Set<ExternalLight> externalLights, LightData oldLightData) {
+    private static @NotNull LightData generateLightForChunk chunk, DimensionType dimensionType, Set<ExternalLight> externalLights, LightData oldLightData) {
         LightData bakedLightData = chunk.getBakedLightData();
 
         BitSet skyMask = bakedLightData == null ? new BitSet() : (BitSet) bakedLightData.skyMask().clone();
@@ -148,17 +136,17 @@ public abstract class LightingCompute {
             /*propagateLightTo(point, point.add(1, 0, 1), lightSource, instance, mask, lightData, section, lightsToCompute, level - 1);
             propagateLightTo(point, point.add(-1, 0, 1), lightSource, instance, mask, lightData, section, lightsToCompute, level - 1);
             propagateLightTo(point, point.add(1, 0, -1), lightSource, instance, mask, lightData, section, lightsToCompute, level - 1);
-            propagateLightTo(point, point.add(-1, 0, -1), lightSource, instance, mask, lightData, section, lightsToCompute, level - 1);*/
+            propagateLightTo(point, point.add(-1, 0, -1), lightSource, instance, mask, lightData, section, lightsToCompute, level - 1);*\/
 
             /*propagateLightTo(point, point.add(0, 1, 1), lightSource, instance, mask, lightData, section, lightsToCompute, level - 1);
             propagateLightTo(point, point.add(0, -1, 1), lightSource, instance, mask, lightData, section, lightsToCompute, level - 1);
             propagateLightTo(point, point.add(0, 1, -1), lightSource, instance, mask, lightData, section, lightsToCompute, level - 1);
-            propagateLightTo(point, point.add(0, -1, -1), lightSource, instance, mask, lightData, section, lightsToCompute, level - 1);*/
+            propagateLightTo(point, point.add(0, -1, -1), lightSource, instance, mask, lightData, section, lightsToCompute, level - 1);*\/
 
             /*propagateLightTo(point, point.add(1, 1, 0), lightSource, instance, mask, lightData, section, lightsToCompute, level - 1);
             propagateLightTo(point, point.add(1, -1, 0), lightSource, instance, mask, lightData, section, lightsToCompute, level - 1);
             propagateLightTo(point, point.add(-1, 1, 0), lightSource, instance, mask, lightData, section, lightsToCompute, level - 1);
-            propagateLightTo(point, point.add(-1, -1, 0), lightSource, instance, mask, lightData, section, lightsToCompute, level - 1);*/
+            propagateLightTo(point, point.add(-1, -1, 0), lightSource, instance, mask, lightData, section, lightsToCompute, level - 1);*\/
         }
     }
 
@@ -287,5 +275,5 @@ public abstract class LightingCompute {
                     light.level
             );
         }
-    }
+    }*/
 }

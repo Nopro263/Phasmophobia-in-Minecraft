@@ -101,7 +101,11 @@ public class DisplayManager {
     }
 
     public void drawCam() throws AWTException {
-        if (!Configuration.config.camera.enabled) return;
+        if (!Configuration.config.camera.enabled) {
+            render4x2(camCache, CAM1, CAM2, CAM3, CAM4, CAM5, CAM6, CAM7, CAM8, (g) -> {
+            });
+            return;
+        }
         if (camRobot == null) {
             GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices()[0];
             camRobot = new Robot(gd);

@@ -1,6 +1,7 @@
 package at.nopro.phasmo.content.map;
 
 import at.nopro.phasmo.game.MapContext;
+import at.nopro.phasmo.lightingv3.VanLightSource;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.utils.Direction;
 
@@ -15,6 +16,10 @@ public class Maps {
             new Pos(15, -41, 15),
             List.of(-42, -46),
             new Pos(22, -41, -2),
-            Direction.WEST
+            Direction.WEST,
+            new VanLightSource(
+                    new Pos(20, -42, -2),
+                    new Pos(23, -40, 6)
+            )
     );
 }

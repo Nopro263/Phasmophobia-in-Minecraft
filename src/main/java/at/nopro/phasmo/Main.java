@@ -9,6 +9,7 @@ import at.nopro.phasmo.game.GameContext;
 import at.nopro.phasmo.game.GameManager;
 import at.nopro.phasmo.game.ItemTracker;
 import at.nopro.phasmo.lightingv3.IngamePhasmoChunk;
+import at.nopro.phasmo.lightingv3.PhasmoInstance;
 import dev.lu15.voicechat.VoiceChat;
 import net.kyori.adventure.text.Component;
 import net.minestom.server.Auth;
@@ -76,6 +77,7 @@ public class Main {
         ResourcePackProvider.init();
         Listeners.init();
         ItemTracker.init();
+        PhasmoInstance.registerDimensionType();
 
         EquipmentManager.register(new EMF_Reader());
         EquipmentManager.register(new Ghost_Book());
@@ -158,7 +160,6 @@ public class Main {
                 if (sender instanceof Player player) {
                     IngamePhasmoChunk chunk = (IngamePhasmoChunk) player.getChunk();
 
-                    chunk.bake();
 
                     player.sendMessage("baked");
                 }
