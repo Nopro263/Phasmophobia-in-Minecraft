@@ -22,6 +22,12 @@ In order to determine the ghost type, you have to find specific evidence that po
 For example a ghost of type "Banshee" will have the evidence "Ultraviolet", "Ghost Orb" and "D.O.T.S Projector". \
 Read more [here](https://store.steampowered.com/app/739630/Phasmophobia/)
 
+## Example Server
+
+you can try the server here:
+`phasmo d​ot uns​er [d​​​​​o​t] dns​64 [​d​o​​t] de`
+version `1.21.10`
+
 ## Running the Server
 
 > [!WARNING]
