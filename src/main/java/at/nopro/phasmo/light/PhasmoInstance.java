@@ -3,6 +3,7 @@ package at.nopro.phasmo.light;
 import at.nopro.phasmo.game.GameContext;
 import net.kyori.adventure.key.Key;
 import net.minestom.server.MinecraftServer;
+import net.minestom.server.instance.Chunk;
 import net.minestom.server.instance.InstanceContainer;
 import net.minestom.server.registry.RegistryKey;
 import net.minestom.server.world.DimensionType;
@@ -34,5 +35,25 @@ public class PhasmoInstance extends InstanceContainer {
 
     public GameContext getGameContext() {
         return gameContext;
+    }
+
+    public void recalculateLight() {
+        for (Chunk c : getChunks()) {
+            if (c instanceof IngamePhasmoChunk i) {
+                i.clearLight();
+            }
+        }
+
+        for (Chunk c : getChunks()) {
+            if (c instanceof IngamePhasmoChunk i) {
+                i.calculateInitialLight();
+            }
+        }
+
+        for (Chunk c : getChunks()) {
+            if (c instanceof IngamePhasmoChunk i) {
+                i.invalidate();
+            }
+        }
     }
 }

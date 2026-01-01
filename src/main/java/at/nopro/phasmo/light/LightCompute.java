@@ -164,7 +164,7 @@ public final class LightCompute {
 
     /**
      * @param light               the light array for the current section
-     * @param shortArrayFIFOQueue all starting lights in this section as intergers (see format in {@link #compute(Palette, IntArrayFIFOQueue, byte[], GlobalBlockLookup, GlobalLightLookup, int, int, int) compute})
+     * @param shortArrayFIFOQueue all starting lights in this section as integers (see format in {@link #compute(Palette, IntArrayFIFOQueue, byte[], GlobalBlockLookup, GlobalLightLookup, int, int, int) compute})
      * @param sectionStartX       the global X-coordinate of the current section
      * @param sectionStartY       the global Y-coordinate of the current section
      * @param sectionStartZ       the global Z-coordinate of the current section
@@ -177,18 +177,17 @@ public final class LightCompute {
     public static Set<SectionPos> computeSection(byte[] light, IntArrayFIFOQueue shortArrayFIFOQueue, int sectionStartX, int sectionStartY, int sectionStartZ, Palette blockPalette, GlobalBlockLookup blockLookup, GlobalLightLookup lightLookup, GlobalPaletteLookup paletteLookup) {
         Map<SectionPos, IntArrayFIFOQueue> lightsToPlaceInOtherSections = compute(blockPalette, shortArrayFIFOQueue, light, blockLookup, lightLookup, sectionStartX, sectionStartY, sectionStartZ);
         for (Map.Entry<SectionPos, IntArrayFIFOQueue> entry : lightsToPlaceInOtherSections.entrySet()) {
-
             compute(paletteLookup.getBlockPalette(
-                            entry.getKey().sectionX,
-                            entry.getKey().sectionY,
-                            entry.getKey().sectionZ
+                            entry.getKey().sectionX * 16,
+                            entry.getKey().sectionY * 16,
+                            entry.getKey().sectionZ * 16
                     ), entry.getValue(),
                     lightLookup.getExternalLightForSectionAt(
                             entry.getKey().sectionX * 16,
                             entry.getKey().sectionY * 16,
                             entry.getKey().sectionZ * 16
                     ),
-                    blockLookup, lightLookup, entry.getKey().sectionX, entry.getKey().sectionY, entry.getKey().sectionZ);
+                    blockLookup, lightLookup, entry.getKey().sectionX * 16, entry.getKey().sectionY * 16, entry.getKey().sectionZ * 16);
 
             lightLookup.getLightForSectionAt(entry.getKey().sectionX * 16,
                     entry.getKey().sectionY * 16,
@@ -286,7 +285,6 @@ public final class LightCompute {
                     final int gz = zO + sectionStartZ;
 
                     final int light = lightLookup.getLightAtPoint(gx, gy, gz);
-                    System.out.println(gx + "," + gy + "," + gz + ":" + light);
                     if (light == -1) continue;
                     if (light < newLightLevel) {
                         final Block currentBlock = Objects.requireNonNullElse(getBlock(blockPalette, x, y, z), Block.AIR);

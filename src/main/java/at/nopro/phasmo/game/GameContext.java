@@ -25,15 +25,13 @@ import net.minestom.server.event.player.PlayerBlockInteractEvent;
 import net.minestom.server.event.player.PlayerChangeHeldSlotEvent;
 import net.minestom.server.event.player.PlayerMoveEvent;
 import net.minestom.server.event.trait.EntityEvent;
-import net.minestom.server.instance.Chunk;
 import net.minestom.server.instance.Instance;
-import net.minestom.server.instance.InstanceContainer;
 import org.jetbrains.annotations.NotNull;
 
 public class GameContext {
     private final MapContext mapContext;
     public BaseGhost entity;
-    private InstanceContainer instance;
+    private PhasmoInstance instance;
     private PathCache pathCache;
     private DisplayManager displayManager;
     private CameraManager cameraManager;
@@ -83,11 +81,7 @@ public class GameContext {
 
         System.out.println(instance.getChunks().size());
 
-        for (Chunk c : instance.getChunks()) {
-            if (c instanceof IngamePhasmoChunk i) {
-                i.calculateInitialLight();
-            }
-        }
+        instance.recalculateLight();
 
         //LightingChunk.relight(instance, instance.getChunks());
 

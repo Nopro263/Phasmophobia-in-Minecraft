@@ -72,14 +72,12 @@ public class IngamePhasmoChunk extends DynamicChunk {
 
     public void toggle() {
         toggle = !toggle;
-        onLoad();
     }
 
-    @Override
-    protected void onLoad() {
-        super.onLoad();
-
-        calculateInitialLight();
+    public void clearLight() {
+        for (SectionLight light : sectionLights) {
+            light.clear();
+        }
     }
 
     private UpdateLightPacket createLightPacket() {
@@ -107,7 +105,6 @@ public class IngamePhasmoChunk extends DynamicChunk {
             tasks.add(CompletableFuture.runAsync(() -> {
                 SectionLight sectionLight = getSectionLight(finalI);
 
-                sectionLight.getDaylight().clear();
                 LightCompute.computeSectionSkyLight(
                         sectionLight.getDaylight().getLightData(),
                         motionBlockingHeightmap(),
@@ -141,7 +138,6 @@ public class IngamePhasmoChunk extends DynamicChunk {
                 SectionLight sectionLight = getSectionLight(finalI);
                 Palette blockPalette = sections.get(finalI).blockPalette();
 
-                sectionLight.getBlockAllOff().clear();
                 sectionsToResend.addAll(LightCompute.computeSectionVanLight(
                         sectionLight.getBlockAllOff().getLightData(),
                         15,
@@ -170,7 +166,8 @@ public class IngamePhasmoChunk extends DynamicChunk {
                             if (!( phasmoInstance.getChunkAt(x, z) instanceof IngamePhasmoChunk phasmoChunk ))
                                 return null;
 
-                            return phasmoChunk.getSection(( y - minY ) >> 4).blockPalette();
+
+                            return phasmoChunk.getSection(y >> 4).blockPalette();
                         }
                 ));
             }));
@@ -234,12 +231,19 @@ public class IngamePhasmoChunk extends DynamicChunk {
             return blockHouseLightsCurrentlyOn;
         }
 
-        public boolean isBlockHouseLightsCurrentlyOn() {
+        public boolean isBlockHouseLightsCurrentlyOn() { //TODO
             return blockHouseLightsCurrentlyOnToggle;
         }
 
         public void setBlockHouseLightsCurrentlyOn(boolean blockHouseLightsCurrentlyOn) {
             this.blockHouseLightsCurrentlyOnToggle = blockHouseLightsCurrentlyOn;
+        }
+
+        public void clear() {
+            daylight.clear();
+            blockAllOff.clear();
+            blockDynamic.clear();
+            blockHouseLightsCurrentlyOn.clear();
         }
     }
 }
