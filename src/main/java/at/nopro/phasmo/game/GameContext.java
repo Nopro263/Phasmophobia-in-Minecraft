@@ -81,9 +81,11 @@ public class GameContext {
             }
         }
 
+        System.out.println(instance.getChunks().size());
+
         for (Chunk c : instance.getChunks()) {
             if (c instanceof IngamePhasmoChunk i) {
-                i.createLightData(true);
+                i.calculateInitialLight();
             }
         }
 

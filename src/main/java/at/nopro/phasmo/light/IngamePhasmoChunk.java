@@ -1,7 +1,9 @@
 package at.nopro.phasmo.light;
 
+import net.minestom.server.instance.Chunk;
 import net.minestom.server.instance.DynamicChunk;
 import net.minestom.server.instance.Instance;
+import net.minestom.server.instance.block.Block;
 import net.minestom.server.instance.palette.Palette;
 import net.minestom.server.network.packet.server.CachedPacket;
 import net.minestom.server.network.packet.server.play.UpdateLightPacket;
@@ -27,92 +29,6 @@ public class IngamePhasmoChunk extends DynamicChunk {
     }
 
     @Override
-    protected void onLoad() {
-        super.onLoad();
-
-        calculateSkyLight();
-        calculateVanLight();
-    }
-
-    public void calculateSkyLight() {
-        int minY = instance.getCachedDimensionType().minY();
-
-        List<CompletableFuture<Void>> tasks = new ArrayList<>();
-
-        for (int i = -1; i < sections.size() + 1; i++) {
-            int sectionMinY = i * 16 + minY;
-
-            int finalI = i;
-            tasks.add(CompletableFuture.runAsync(() -> {
-                SectionLight sectionLight = getSectionLight(finalI);
-
-                byte[] dayLight = new byte[2048];
-
-                LightCompute.computeSectionSkyLight(
-                        dayLight,
-                        motionBlockingHeightmap(),
-                        15,
-                        sectionMinY
-                );
-
-                sectionLight.setDaylightValue(dayLight);
-            }));
-        }
-    }
-
-    private UpdateLightPacket createLightPacket() {
-        return new UpdateLightPacket(chunkX, chunkZ, createLightData(false));
-    }
-
-    public void calculateVanLight() {
-        int minY = instance.getCachedDimensionType().minY();
-        int chunkMinX = chunkX * 16;
-        int chunkMinZ = chunkZ * 16;
-
-        List<CompletableFuture<Void>> tasks = new ArrayList<>();
-
-        VanLightSource vanLightSource;
-        if (!( instance instanceof PhasmoInstance phasmoInstance )) {
-            return;
-        }
-        vanLightSource = phasmoInstance.getGameContext().getMapContext().vanLightSource();
-
-        for (int i = 0; i < sections.size(); i++) {
-            int sectionMinY = i * 16 + minY;
-
-            int finalI = i;
-            tasks.add(CompletableFuture.runAsync(() -> {
-                SectionLight sectionLight = getSectionLight(finalI);
-                Palette blockPalette = sections.get(finalI).blockPalette();
-
-
-                byte[] vanLight = new byte[2048];
-
-                LightCompute.computeSectionVanLight(
-                        vanLight,
-                        15,
-                        sectionMinY,
-                        chunkMinX,
-                        chunkMinZ,
-                        blockPalette,
-                        vanLightSource
-                );
-
-                sectionLight.setBlockAllOffValue(vanLight);
-            }));
-        }
-
-
-        for (CompletableFuture<Void> task : tasks) {
-            task.join();
-        }
-    }
-
-    private SectionLight getSectionLight(int sectionIndex) {
-        return this.sectionLights[sectionIndex + 1];
-    }
-
-    @Override
     public @NotNull LightData createLightData(boolean requiredFullChunk) {
         BitSet skyMask = new BitSet();
         BitSet blockMask = new BitSet();
@@ -130,13 +46,13 @@ public class IngamePhasmoChunk extends DynamicChunk {
             //recalculate light
 
             skyMask.set(i + 1);
-            skyLights.add(sectionLight.getDaylight());
+            skyLights.add(sectionLight.getDaylight().getLightData());
 
             blockMask.set(i + 1);
             blockLights.add(LightCompute.bake(
-                    sectionLight.getBlockAllOff(),
-                    sectionLight.getBlockHouseLightsCurrentlyOn(),
-                    sectionLight.getBlockDynamic()
+                    sectionLight.getBlockAllOff().getLightData(),
+                    sectionLight.getBlockHouseLightsCurrentlyOn().getLightData(),
+                    sectionLight.getBlockDynamic().getLightData()
             ));
         }
 
@@ -156,6 +72,123 @@ public class IngamePhasmoChunk extends DynamicChunk {
 
     public void toggle() {
         toggle = !toggle;
+        onLoad();
+    }
+
+    @Override
+    protected void onLoad() {
+        super.onLoad();
+
+        calculateInitialLight();
+    }
+
+    private UpdateLightPacket createLightPacket() {
+        return new UpdateLightPacket(chunkX, chunkZ, createLightData(false));
+    }
+
+    public void calculateInitialLight() {
+        calculateSkyLight();
+        calculateVanLight();
+    }
+
+    private SectionLight getSectionLight(int sectionIndex) {
+        return this.sectionLights[sectionIndex + 1];
+    }
+
+    public void calculateSkyLight() {
+        int minY = instance.getCachedDimensionType().minY();
+
+        List<CompletableFuture<Void>> tasks = new ArrayList<>();
+
+        for (int i = -1; i < sections.size() + 1; i++) {
+            int sectionMinY = i * 16 + minY;
+
+            int finalI = i;
+            tasks.add(CompletableFuture.runAsync(() -> {
+                SectionLight sectionLight = getSectionLight(finalI);
+
+                sectionLight.getDaylight().clear();
+                LightCompute.computeSectionSkyLight(
+                        sectionLight.getDaylight().getLightData(),
+                        motionBlockingHeightmap(),
+                        15,
+                        sectionMinY
+                );
+            }));
+        }
+    }
+
+    public void calculateVanLight() {
+        int minY = instance.getCachedDimensionType().minY();
+        int chunkMinX = chunkX * 16;
+        int chunkMinZ = chunkZ * 16;
+
+        List<CompletableFuture<Void>> tasks = new ArrayList<>();
+
+        VanLightSource vanLightSource;
+        if (!( instance instanceof PhasmoInstance phasmoInstance )) {
+            return;
+        }
+        vanLightSource = phasmoInstance.getGameContext().getMapContext().vanLightSource();
+
+        Set<LightCompute.SectionPos> sectionsToResend = new HashSet<>();
+
+        for (int i = 0; i < sections.size(); i++) {
+            int sectionMinY = i * 16 + minY;
+
+            int finalI = i;
+            tasks.add(CompletableFuture.runAsync(() -> {
+                SectionLight sectionLight = getSectionLight(finalI);
+                Palette blockPalette = sections.get(finalI).blockPalette();
+
+                sectionLight.getBlockAllOff().clear();
+                sectionsToResend.addAll(LightCompute.computeSectionVanLight(
+                        sectionLight.getBlockAllOff().getLightData(),
+                        15,
+                        sectionMinY,
+                        chunkMinX,
+                        chunkMinZ,
+                        blockPalette,
+                        vanLightSource,
+                        (x, y, z) -> {
+                            Chunk chunk = phasmoInstance.getChunkAt(x, z);
+                            if (chunk == null) return null;
+                            return Objects.requireNonNullElse(chunk.getBlock(x, y, z), Block.AIR);
+                        },
+                        (x, y, z) -> {
+                            if (phasmoInstance.getChunkAt(x, z) == null) {
+                                phasmoInstance.loadChunk(x, z).join();
+                            }
+                            if (!( phasmoInstance.getChunkAt(x, z) instanceof IngamePhasmoChunk phasmoChunk ))
+                                return null;
+                            return phasmoChunk.getSectionLight(( y - minY ) >> 4).getBlockAllOff();
+                        },
+                        (x, y, z) -> {
+                            if (phasmoInstance.getChunkAt(x, z) == null) {
+                                phasmoInstance.loadChunk(x, z).join();
+                            }
+                            if (!( phasmoInstance.getChunkAt(x, z) instanceof IngamePhasmoChunk phasmoChunk ))
+                                return null;
+
+                            return phasmoChunk.getSection(( y - minY ) >> 4).blockPalette();
+                        }
+                ));
+            }));
+        }
+
+
+        for (CompletableFuture<Void> task : tasks) {
+            task.join();
+        }
+
+        for (LightCompute.SectionPos sectionPos : sectionsToResend) {
+            if (!( phasmoInstance.getChunk(sectionPos.sectionX(), sectionPos.sectionZ()) instanceof IngamePhasmoChunk phasmoChunk )) {
+                throw new RuntimeException("uuuuuh");
+            }
+
+            phasmoChunk.invalidate();
+            phasmoChunk.resendLight();
+        }
     }
 
     public void resendLight() {
@@ -171,74 +204,42 @@ public class IngamePhasmoChunk extends DynamicChunk {
     }
 
     private static final class SectionLight {
-        private byte[] daylight;
-        private byte[] blockAllOff;
-        private byte[] blockDynamic;
-        private byte[] blockHouseLightsCurrentlyOn;
+        private final Light daylight;
+        private final Light blockAllOff;
+        private final Light blockDynamic;
+        private final Light blockHouseLightsCurrentlyOn;
 
         private boolean blockHouseLightsCurrentlyOnToggle = false;
 
         private SectionLight() {
-
+            daylight = new Light();
+            blockAllOff = new Light();
+            blockDynamic = new Light();
+            blockHouseLightsCurrentlyOn = new Light();
         }
 
-        public byte[] getDaylight() {
-            return daylight != null ? daylight : LightCompute.EMPTY_CONTENT;
+        public Light getDaylight() {
+            return daylight;
         }
 
-        public byte[] getBlockAllOff() {
-            return blockAllOff != null ? blockAllOff : LightCompute.EMPTY_CONTENT;
+        public Light getBlockAllOff() {
+            return blockAllOff;
         }
 
-        public byte[] getBlockHouseLightsCurrentlyOn() {
-            return blockHouseLightsCurrentlyOnToggle ? blockHouseLightsCurrentlyOn : LightCompute.EMPTY_CONTENT;
+        public Light getBlockDynamic() {
+            return blockDynamic;
         }
 
-        public byte[] getBlockDynamic() {
-            return blockDynamic != null ? blockDynamic : LightCompute.EMPTY_CONTENT;
+        public Light getBlockHouseLightsCurrentlyOn() {
+            return blockHouseLightsCurrentlyOn;
         }
 
-        public void setBlockDynamicValue(byte[] blockDynamic) {
-            this.blockDynamic = blockDynamic;
+        public boolean isBlockHouseLightsCurrentlyOn() {
+            return blockHouseLightsCurrentlyOnToggle;
         }
 
-        public void setDaylightValue(byte[] daylight) {
-            this.daylight = daylight;
-        }
-
-        public void setBlockAllOffValue(byte[] blockAllOff) {
-            this.blockAllOff = blockAllOff;
-        }
-
-        public void setBlockHouseLightsCurrentlyOnValue(byte[] blockHouseLightsCurrentlyOn) {
-            this.blockHouseLightsCurrentlyOn = blockHouseLightsCurrentlyOn;
-        }
-
-        public void setBlockHouseLightsCurrentlyOnToggle(boolean blockHouseLightsCurrentlyOnToggle) {
-            this.blockHouseLightsCurrentlyOnToggle = blockHouseLightsCurrentlyOnToggle;
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(Arrays.hashCode(daylight), Arrays.hashCode(blockAllOff), Arrays.hashCode(blockHouseLightsCurrentlyOn));
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (obj == this) return true;
-            if (obj == null || obj.getClass() != this.getClass()) return false;
-            var that = (SectionLight) obj;
-            return Arrays.equals(this.daylight, that.daylight) &&
-                    Arrays.equals(this.blockAllOff, that.blockAllOff) &&
-                    Arrays.equals(this.blockHouseLightsCurrentlyOn, that.blockHouseLightsCurrentlyOn);
-        }
-
-        @Override
-        public String toString() {
-            return "SectionLight[" +
-                    "daylight=" + Arrays.toString(daylight) + ", " +
-                    "blockAllOff=" + Arrays.toString(blockAllOff) + ", " +
-                    "blockHouseLightsCurrentlyOn=" + Arrays.toString(blockHouseLightsCurrentlyOn) + ']';
+        public void setBlockHouseLightsCurrentlyOn(boolean blockHouseLightsCurrentlyOn) {
+            this.blockHouseLightsCurrentlyOnToggle = blockHouseLightsCurrentlyOn;
         }
     }
 }
