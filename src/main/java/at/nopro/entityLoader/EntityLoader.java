@@ -43,17 +43,17 @@ public class EntityLoader extends AnvilLoader {
 
     @Override
     public @Nullable Chunk loadChunk(@NotNull Instance instance, int chunkX, int chunkZ) {
+        Chunk chunk = super.loadChunk(instance, chunkX, chunkZ);
+        chunk.motionBlockingHeightmap().refresh(instance.getCachedDimensionType().minY());
         try {
-            loadMCA(instance, chunkX, chunkZ);
+            loadMCA(instance, chunkX, chunkZ, chunk);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        Chunk chunk = super.loadChunk(instance, chunkX, chunkZ);
-        chunk.motionBlockingHeightmap().refresh(instance.getCachedDimensionType().minY());
         return chunk;
     }
 
-    private boolean loadMCA(Instance instance, int chunkX, int chunkZ) throws IOException {
+    private boolean loadMCA(Instance instance, int chunkX, int chunkZ, Chunk chunk) throws IOException {
         RegionFile mcaFile = this.getMCAFile(chunkX, chunkZ);
         if (mcaFile == null) {
             return false;
@@ -65,10 +65,12 @@ public class EntityLoader extends AnvilLoader {
                 for (BinaryTag entityTag : chunkData.getList("Entities", BinaryTagTypes.COMPOUND)) {
                     if (entityTag instanceof CompoundBinaryTag entity) {
 
-                        Entity e = loadEntity(entity);
+                        Entity e = loadEntity(entity, instance, chunk);
                         if (e == null) {
                             continue;
                         }
+                        Reflection.set(e, "instance", null);
+                        Reflection.set(e, "currentChunk", null);
 
                         ListBinaryTag listBinaryTag = entity.getList("Pos");
 
@@ -78,10 +80,12 @@ public class EntityLoader extends AnvilLoader {
 
                         ListBinaryTag passengerTag = entity.getList("Passengers");
                         for (int i = 0; i < passengerTag.size(); i++) {
-                            Entity passenger = loadEntity(passengerTag.getCompound(i));
+                            Entity passenger = loadEntity(passengerTag.getCompound(i), instance, chunk);
                             if (passenger == null) {
                                 continue;
                             }
+                            Reflection.set(passenger, "instance", null);
+                            Reflection.set(passenger, "currentChunk", null);
                             passenger.setInstance(instance, p);
 
                             MinecraftServer.getSchedulerManager().submitTask(() -> {
@@ -117,7 +121,7 @@ public class EntityLoader extends AnvilLoader {
         }
     }
 
-    private Entity loadEntity(CompoundBinaryTag entity) {
+    private Entity loadEntity(CompoundBinaryTag entity, Instance targetInstance, Chunk targetChunk) {
         Entity e;
 
         String id = entity.getString("id");
@@ -131,6 +135,8 @@ public class EntityLoader extends AnvilLoader {
         Pos p = new Pos(listBinaryTag.getDouble(0), listBinaryTag.getDouble(1), listBinaryTag.getDouble(2));
 
         Reflection.set(e, "position", p);
+        Reflection.set(e, "instance", targetInstance);
+        Reflection.set(e, "currentChunk", targetChunk);
 
         EntityMeta meta = e.getEntityMeta();
 

@@ -1,14 +1,19 @@
 package at.nopro.phasmo.game;
 
 import at.nopro.entityLoader.MetadataMapper;
+import at.nopro.phasmo.content.map.RoomLightSource;
 import at.nopro.phasmo.event.TemperatureEvent;
+import at.nopro.phasmo.light.IngamePhasmoChunk;
+import at.nopro.phasmo.light.PhasmoInstance;
 import net.kyori.adventure.nbt.BinaryTag;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Vec;
 import net.minestom.server.entity.Entity;
 import net.minestom.server.entity.Player;
+import net.minestom.server.entity.metadata.other.ItemFrameMeta;
 import net.minestom.server.entity.metadata.other.MarkerMeta;
+import net.minestom.server.item.Material;
 import net.minestom.server.timer.TaskSchedule;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
@@ -76,6 +81,27 @@ public class RoomManager {
                 room.boundingBoxes.add(new Room.RoomPart(min, max));
             }
             return null;
+        } else if (entity.getEntityMeta() instanceof ItemFrameMeta displayMeta) {
+            if (displayMeta.getItem().material() == Material.TORCH) {
+                Room r = getRoom(entity.getPosition());
+                if (r == null) {
+                    System.err.println("room not initialized");
+                    return entity;
+                }
+
+                if (!( entity.getInstance() instanceof PhasmoInstance instance )) {
+                    throw new RuntimeException("not a phasmo instance");
+                }
+
+                if (!( entity.getChunk() instanceof IngamePhasmoChunk chunk )) {
+                    throw new RuntimeException("not a phasmo chunk");
+                }
+
+                RoomLightSource lightSource = new RoomLightSource(entity.getPosition(), r, chunk);
+                r.lamps.add(lightSource);
+                chunk.addRoomLightSource(lightSource);
+                return null;
+            }
         }
         return entity;
     }
@@ -85,6 +111,8 @@ public class RoomManager {
         private final List<RoomPart> boundingBoxes = new ArrayList<>();
         private final String name;
         private double temperature;
+        private final List<RoomLightSource> lamps = new ArrayList<>();
+        private boolean lampsTurnedOn = true;
 
         public Room(String name) {
             this.name = name;
@@ -104,6 +132,14 @@ public class RoomManager {
 
         public void calculateTemperature() {
             temperature = 3;
+        }
+
+        public boolean isLampsTurnedOn() {
+            return lampsTurnedOn;
+        }
+
+        public void setLampsTurnedOn(boolean lampsTurnedOn) {
+            this.lampsTurnedOn = lampsTurnedOn;
         }
 
         public List<Player> getPlayers() {

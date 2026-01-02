@@ -4,6 +4,8 @@ import at.nopro.phasmo.game.CameraManager;
 import at.nopro.phasmo.game.GameContext;
 import at.nopro.phasmo.game.GameManager;
 import at.nopro.phasmo.game.MapContext;
+import at.nopro.phasmo.light.IngamePhasmoChunk;
+import at.nopro.phasmo.light.PhasmoInstance;
 import net.kyori.adventure.text.TextComponent;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.entity.GameMode;
@@ -93,6 +95,28 @@ public class Listeners {
 
         addListener(PlayerBlockBreakEvent.class, event -> {
             event.setCancelled(true);
+
+            if (!( event.getInstance() instanceof PhasmoInstance instance )) {
+                return;
+            }
+
+            if (!( instance.getChunkAt(event.getBlockPosition()) instanceof IngamePhasmoChunk chunk )) {
+                return;
+            }
+
+            for (int i = -1; i <= 1; i++) {
+                for (int j = -1; j <= 1; j++) {
+
+                    if (!( instance.getChunk(
+                            chunk.getChunkX() + i,
+                            chunk.getChunkZ() + j
+                    ) instanceof IngamePhasmoChunk chunk2 )) {
+                        continue;
+                    }
+
+                    chunk2.resendLightTo(event.getPlayer());
+                }
+            }
         });
 
         addListener(PlayerStartDiggingEvent.class, event -> {
