@@ -81,7 +81,7 @@ public class GameContext {
 
         System.out.println(instance.getChunks().size());
 
-        instance.recalculateLight();
+        instance.recalculateFullLight();
 
         //LightingChunk.relight(instance, instance.getChunks());
 

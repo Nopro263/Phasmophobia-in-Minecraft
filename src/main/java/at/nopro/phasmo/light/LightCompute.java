@@ -3,6 +3,7 @@ package at.nopro.phasmo.light;
 import it.unimi.dsi.fastutil.ints.IntArrayFIFOQueue;
 import net.minestom.server.collision.Shape;
 import net.minestom.server.coordinate.Point;
+import net.minestom.server.coordinate.Pos;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.instance.block.BlockFace;
 import net.minestom.server.instance.heightmap.Heightmap;
@@ -141,7 +142,7 @@ public final class LightCompute {
                                     vanLightSource.point1().blockY() <= y + sectionStartY && vanLightSource.point2().blockY() >= y + sectionStartY &&
                                     vanLightSource.point1().blockZ() <= z + sectionStartZ && vanLightSource.point2().blockZ() >= z + sectionStartZ
                     ) {
-                        enqueueLight(shortArrayFIFOQueue, x, y, z, vanLevel);
+                        enqueueLight(shortArrayFIFOQueue, x, y, z, vanLevel, false);
                     }
                 }
             }
@@ -160,39 +161,12 @@ public final class LightCompute {
         );
     }
 
-    /**
-     * calculate the light level for the van
-     * sets the level between the two points in vanLightSource to vanLevel
-     * propagates light outwards
-     *
-     * @param light         the destination array
-     * @param lightLevel    the light-level of all lamps
-     * @param sectionStartY global Y-coordinate of the current section
-     * @param sectionStartX global X-coordinate of the current section
-     * @param sectionStartZ global Z-coordinate of the current section
-     * @param blockPalette  blockPalette of the current section
-     * @param lights        the points of all currently on lamps in this section
-     */
-    public static Set<SectionPos> computeSectionRoomLight(byte[] light, int lightLevel, int sectionStartY, int sectionStartX, int sectionStartZ, Palette blockPalette, List<Point> lights, GlobalBlockLookup blockLookup, GlobalLightLookup lightLookup, GlobalPaletteLookup paletteLookup) {
-        IntArrayFIFOQueue shortArrayFIFOQueue = new IntArrayFIFOQueue();
+    private static void enqueueLight(IntArrayFIFOQueue queue, int x, int y, int z, int level, boolean fastFalloff) {
+        enqueueLight(queue, x, y, z, level, fastFalloff, (byte) 0);
+    }
 
-        for (Point lightSource : lights) {
-            if (lightSource.blockY() >= sectionStartY && lightSource.blockY() < sectionStartY + 16) {
-                enqueueLight(shortArrayFIFOQueue, lightSource.blockX() & 15, lightSource.blockY() & 15, lightSource.blockZ() & 15, lightLevel);
-            }
-        }
-
-        return computeSection(
-                light,
-                shortArrayFIFOQueue,
-                sectionStartX,
-                sectionStartY,
-                sectionStartZ,
-                blockPalette,
-                blockLookup,
-                lightLookup,
-                paletteLookup
-        );
+    private static void enqueueLight(IntArrayFIFOQueue queue, int x, int y, int z, int level, boolean fastFalloff, byte sourceId) {
+        enqueueLight(queue, x, y, z, level, 0b111111, fastFalloff, sourceId);
     }
 
     /**
@@ -230,9 +204,81 @@ public final class LightCompute {
         return lightsToPlaceInOtherSections.keySet();
     }
 
-    private static void enqueueLight(IntArrayFIFOQueue queue, int x, int y, int z, int level) {
-        int allowedDirections = 0b111111;
-        queue.enqueue(x | ( z << 4 ) | ( y << 8 ) | ( level << 12 ) | ( allowedDirections << 16 ));
+    private static void enqueueLight(IntArrayFIFOQueue queue, int x, int y, int z, int level, int allowedDirections, boolean fastFalloff, byte sourceId) {
+        int _allowedDirections = allowedDirections & 0b111111;
+        int _fastFalloff = fastFalloff ? 1 : 0;
+        int _unusedFlag = 1;
+        queue.enqueue(x | ( z << 4 ) | ( y << 8 ) | ( level << 12 ) | ( _allowedDirections << 16 ) | ( _fastFalloff << 22 ) | ( _unusedFlag << 23 ) | ( (int) sourceId << 24 ));
+    }
+
+    /**
+     * calculate the light level for the van
+     * sets the level between the two points in vanLightSource to vanLevel
+     * propagates light outwards
+     *
+     * @param light         the destination array
+     * @param lightLevel    the light-level of all lamps
+     * @param sectionStartY global Y-coordinate of the current section
+     * @param sectionStartX global X-coordinate of the current section
+     * @param sectionStartZ global Z-coordinate of the current section
+     * @param blockPalette  blockPalette of the current section
+     * @param lights        the points of all currently on lamps in this section
+     */
+    public static Set<SectionPos> computeSectionRoomLight(byte[] light, int lightLevel, int sectionStartY, int sectionStartX, int sectionStartZ, Palette blockPalette, List<Point> lights, GlobalBlockLookup blockLookup, GlobalLightLookup lightLookup, GlobalPaletteLookup paletteLookup) {
+        IntArrayFIFOQueue shortArrayFIFOQueue = new IntArrayFIFOQueue();
+
+        for (Point lightSource : lights) {
+            if (lightSource.blockY() >= sectionStartY && lightSource.blockY() < sectionStartY + 16) {
+                enqueueLight(shortArrayFIFOQueue, lightSource.blockX() & 15, lightSource.blockY() & 15, lightSource.blockZ() & 15, lightLevel, false);
+            }
+        }
+
+        return computeSection(
+                light,
+                shortArrayFIFOQueue,
+                sectionStartX,
+                sectionStartY,
+                sectionStartZ,
+                blockPalette,
+                blockLookup,
+                lightLookup,
+                paletteLookup
+        );
+    }
+
+    /**
+     * calculate the light level for the van
+     * sets the level between the two points in vanLightSource to vanLevel
+     * propagates light outwards
+     *
+     * @param light         the destination array
+     * @param lightLevel    the light-level of all lamps
+     * @param sectionStartY global Y-coordinate of the current section
+     * @param sectionStartX global X-coordinate of the current section
+     * @param sectionStartZ global Z-coordinate of the current section
+     * @param blockPalette  blockPalette of the current section
+     * @param lights        the points of all currently on lamps in this section
+     */
+    public static Set<SectionPos> computeSectionDynamicLight(byte[] light, int lightLevel, int sectionStartY, int sectionStartX, int sectionStartZ, Palette blockPalette, List<Pos> lights, GlobalBlockLookup blockLookup, GlobalLightLookup lightLookup, GlobalPaletteLookup paletteLookup) {
+        IntArrayFIFOQueue shortArrayFIFOQueue = new IntArrayFIFOQueue();
+
+        for (Pos lightSource : lights) {
+            if (lightSource.blockY() >= sectionStartY && lightSource.blockY() < sectionStartY + 16) {
+                enqueueLight(shortArrayFIFOQueue, lightSource.blockX() & 15, lightSource.blockY() & 15, lightSource.blockZ() & 15, lightLevel, true);
+            }
+        }
+
+        return computeSection(
+                light,
+                shortArrayFIFOQueue,
+                sectionStartX,
+                sectionStartY,
+                sectionStartZ,
+                blockPalette,
+                blockLookup,
+                lightLookup,
+                paletteLookup
+        );
     }
 
     /**
@@ -242,7 +288,7 @@ public final class LightCompute {
      * they are updated for each subsequent light after hitting a non-air block -> this removes the going around corners completely
      *
      * @param blockPalette the blockPalette for the current section
-     * @param lightPre     int queue in format: [10bit unused][6bit allowed light directions][4bit light level][4bit y][4bit z][4bit x]
+     * @param lightPre     int queue in format: [8bit light-source id][1bit unused][1bit flag fast falloff][6bit allowed light directions][4bit light level][4bit y][4bit z][4bit x]
      * @param lightArray   the output destination
      */
     private static Map<SectionPos, IntArrayFIFOQueue> compute(Palette blockPalette, IntArrayFIFOQueue lightPre, byte[] lightArray, GlobalBlockLookup blockLookup, GlobalLightLookup lightLookup, int sectionStartX, int sectionStartY, int sectionStartZ) {
@@ -271,7 +317,12 @@ public final class LightCompute {
             final int y = ( index >> 8 ) & 15;
             final int lightLevel = ( index >> 12 ) & 15;
             final int allowedDirections = ( index >> 16 ) & 0b111111;
-            final byte newLightLevel = (byte) ( lightLevel - 1 );
+            final int fastFalloff = ( index >> 22 ) & 1;
+            final int unusedFlag = ( index >> 23 ) & 1;
+            final byte sourceId = (byte) ( ( index >> 24 ) & 0xff );
+
+            final byte newLightLevel = (byte) ( lightLevel - ( 1 + fastFalloff ) );
+
 
             int newAllowedDirections = 0;
 
@@ -337,7 +388,7 @@ public final class LightCompute {
                             propagatingLights.put(sectionPos, new IntArrayFIFOQueue());
                         }
 
-                        propagatingLights.get(sectionPos).enqueue(newIndex | ( newLightLevel << 12 ) | ( newAllowedDirections << 16 ));
+                        propagatingLights.get(sectionPos).enqueue(newIndex | ( newLightLevel << 12 ) | ( newAllowedDirections << 16 ) | ( fastFalloff << 22 ) | ( unusedFlag << 23 ) | ( sourceId << 24 ));
                     }
 
                     continue;
@@ -358,7 +409,7 @@ public final class LightCompute {
                         continue;
 
                     setLight(lightArray, newIndex, newLightLevel);
-                    lightSources.enqueue(newIndex | ( newLightLevel << 12 ) | ( newAllowedDirections << 16 ));
+                    lightSources.enqueue(newIndex | ( newLightLevel << 12 ) | ( newAllowedDirections << 16 ) | ( fastFalloff << 22 ) | ( unusedFlag << 23 ) | ( sourceId << 24 ));
                 }
             }
         }
