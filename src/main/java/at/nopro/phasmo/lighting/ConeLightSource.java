@@ -3,7 +3,7 @@ package at.nopro.phasmo.lighting;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.coordinate.Vec;
 
-public class ConeLightSource implements PointLightSource {
+public class ConeLightSource { //Only as a reference for the math
     private final int strength;
     private final int maxDist;
     private final int k;
@@ -16,12 +16,10 @@ public class ConeLightSource implements PointLightSource {
         this.k = k;
     }
 
-    @Override
     public long getId() {
         return this.hashCode();
     }
 
-    @Override
     public Pos getSource() {
         return source;
     }
