@@ -65,7 +65,7 @@ public class ResourcePackProvider implements HttpHandler {
             Path path = Path.of(config.resourcepackServer.bind.path);
             if (!path.resolve("pack.mcmeta").toFile().exists()) {
                 System.err.println("The specified resource pack directory does not contain a pack.mcmeta");
-                System.exit(1);
+                //System.exit(1);
                 return null;
             }
             provider.fromDirectory(path);
