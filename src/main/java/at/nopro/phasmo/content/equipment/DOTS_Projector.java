@@ -53,13 +53,13 @@ public class DOTS_Projector implements Equipment {
     }
 
     private void handle(AfterDropEvent e, Entity entity, ItemReference r) {
-        GameContext gameContext = e.getGameContext();
+        GameContext gameContext = e.gameContext();
         x(gameContext, gameContext.getInstance(), e.getPlayer().getPosition(), e.getPlayer().getEyeHeight(), DIST + 2, true);
         x(gameContext, gameContext.getInstance(), e.getEntity().getPosition(), entity.getEyeHeight(), DIST, false);
     }
 
     private void handle(AfterPickupEvent e, Entity entity, ItemReference r) {
-        GameContext gameContext = e.getGameContext();
+        GameContext gameContext = e.gameContext();
         x(gameContext, gameContext.getInstance(), e.getEntity().getPosition(), e.getEntity().getEyeHeight(), DIST + 2, true);
         x(gameContext, gameContext.getInstance(), e.getPlayer().getPosition(), e.getPlayer().getEyeHeight(), DIST, false);
     }

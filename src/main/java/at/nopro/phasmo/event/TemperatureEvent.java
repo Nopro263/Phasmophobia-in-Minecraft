@@ -13,7 +13,7 @@ public class TemperatureEvent implements PhasmoEvent {
     }
 
     @Override
-    public GameContext getGameContext() {
+    public GameContext gameContext() {
         return gameContext;
     }
 

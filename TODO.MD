@@ -13,6 +13,7 @@
 - [x] sanity chart
 - multiple cameras
 - ghost events
+- cursed possession
 - equipment
     - [x] camera
     - [x] flashlight
@@ -21,18 +22,18 @@
     - ~ thermometer
     - ~ book
     - [x] emf reader
-    - spirit box (use voice chat and text chat)
-    - optional
-        - crucifix
-        - firelight
-        - headgear
-        - igniter
-        - incense
-        - motion sensor
-        - parabolic microphone
-        - photo camera
-        - salt
-        - sanity medication
-        - sound recorder
-        - sound sensor
-        - tripod
+    - [x] spirit box (use voice chat and text chat) -> currently only text and without questions
+        - optional
+            - crucifix
+            - firelight
+            - headgear
+            - igniter
+            - incense
+            - motion sensor
+            - parabolic microphone
+            - photo camera
+            - salt
+            - sanity medication
+            - sound recorder
+            - sound sensor
+            - tripod

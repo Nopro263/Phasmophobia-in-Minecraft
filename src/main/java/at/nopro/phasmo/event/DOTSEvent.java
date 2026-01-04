@@ -13,8 +13,8 @@ public class DOTSEvent implements PhasmoEvent {
     }
 
     @Override
-    public GameContext getGameContext() {
-        return null;
+    public GameContext gameContext() {
+        return gameContext;
     }
 
     public Point getPoint() {

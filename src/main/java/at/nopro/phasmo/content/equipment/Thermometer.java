@@ -28,7 +28,7 @@ public class Thermometer implements Equipment {
     }
 
     private void handle(TemperatureEvent temperatureEvent, Entity entity, ItemReference r) {
-        if (temperatureEvent.getGameContext().getRoomManager().getRoom(entity.getPosition()) != temperatureEvent.getRoom()) {
+        if (temperatureEvent.gameContext().getRoomManager().getRoom(entity.getPosition()) != temperatureEvent.getRoom()) {
             return;
         }
 

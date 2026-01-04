@@ -7,6 +7,17 @@ import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.Material;
 
 public class ItemProvider {
+    public static ItemStack getSpiritBox(boolean hasResponse) {
+        return ItemStack.builder(Material.HEAVY_CORE)
+                .itemModel("minecraft:heavy_core")
+                .set(DataComponents.DAMAGE, hasResponse ? 1 : 100)
+                .set(DataComponents.MAX_DAMAGE, 100)
+                .set(DataComponents.MAX_STACK_SIZE, 1)
+                .set(EquipmentManager.EQUIPMENT_TAG, EquipmentManager.get(SpiritBox.class))
+                .customName(Component.text("SpiritBox"))
+                .build();
+    }
+
     public static ItemStack getEMFReader(int level) {
         if (level < 0 || level > 5) throw new RuntimeException("unknown EMF level");
         return ItemStack.builder(Material.STICK)

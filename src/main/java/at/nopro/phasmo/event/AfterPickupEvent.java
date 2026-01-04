@@ -17,7 +17,7 @@ public class AfterPickupEvent implements PhasmoEvent, EntityEvent {
     }
 
     @Override
-    public GameContext getGameContext() {
+    public GameContext gameContext() {
         return gameContext;
     }
 

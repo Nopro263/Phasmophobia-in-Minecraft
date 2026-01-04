@@ -17,7 +17,7 @@ public class AfterDropEvent implements PhasmoEvent, EntityEvent {
     }
 
     @Override
-    public GameContext getGameContext() {
+    public GameContext gameContext() {
         return gameContext;
     }
 

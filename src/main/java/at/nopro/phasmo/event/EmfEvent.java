@@ -17,7 +17,7 @@ public class EmfEvent implements PhasmoEvent {
     }
 
     @Override
-    public GameContext getGameContext() {
+    public GameContext gameContext() {
         return gameContext;
     }
 

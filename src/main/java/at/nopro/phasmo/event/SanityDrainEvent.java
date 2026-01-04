@@ -43,7 +43,7 @@ public class SanityDrainEvent implements PhasmoEvent, CancellableEvent {
     }
 
     @Override
-    public GameContext getGameContext() {
+    public GameContext gameContext() {
         return this.gameContext;
     }
 

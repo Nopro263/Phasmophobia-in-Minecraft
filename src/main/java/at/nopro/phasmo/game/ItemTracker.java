@@ -28,6 +28,8 @@ public class ItemTracker {
     private static final Map<Pair<Player, Integer>, ItemReference> playerSlotMap = new HashMap<>();
     private static final Map<Entity, ItemReference> itemMap = new HashMap<>();
 
+    public static final int OFFHAND = 45;
+
     public static void init() {
         EventNode<@NotNull Event> node = EventNode.all("phasmo-monitor");
         node.setPriority(90);
@@ -67,7 +69,7 @@ public class ItemTracker {
         if (event.isNowAlive()) {
             return;
         }
-        final Player player = event.getPlayer();
+        final Player player = event.player();
         for (int slot = 0; slot < player.getInventory().getSize(); slot++) {
             Pair<Player, Integer> mainHandPair = new Pair<>(player, slot);
             ItemReference mainHandTracker = playerSlotMap.get(mainHandPair);
@@ -88,12 +90,12 @@ public class ItemTracker {
     }
 
     private static void handlePlace(PlaceEquipmentEvent event) {
-        final Player player = (Player) event.getItemReference().getContainingEntity(); // if this errors, how does a non-player place equipment?
+        final Player player = (Player) event.itemReference().getContainingEntity(); // if this errors, how does a non-player place equipment?
         int mainHandSlot = player.getHeldSlot();
         Pair<Player, Integer> mainHandPair = new Pair<>(player, mainHandSlot);
         ItemReference mainHandTracker = playerSlotMap.get(mainHandPair);
 
-        ItemEntity itemEntity = new ItemEntity(event.getItemReference().get());
+        ItemEntity itemEntity = new ItemEntity(event.itemReference().get());
 
         if (mainHandTracker != null) {
             player.setItemInMainHand(ItemStack.AIR);
@@ -102,7 +104,7 @@ public class ItemTracker {
             itemMap.put(itemEntity, mainHandTracker);
         }
 
-        itemEntity.setInstance(event.getGameContext().getInstance(), event.getPos());
+        itemEntity.setInstance(event.gameContext().getInstance(), event.pos());
     }
 
     private static void handleSwap(PlayerSwapItemEvent event) {

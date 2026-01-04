@@ -1,10 +1,9 @@
 package at.nopro.phasmo.content.ghost;
 
 import at.nopro.phasmo.entity.PhasmoEntity;
-import at.nopro.phasmo.event.DOTSEvent;
-import at.nopro.phasmo.event.EmfEvent;
-import at.nopro.phasmo.event.TemperatureEvent;
+import at.nopro.phasmo.event.*;
 import at.nopro.phasmo.game.GameContext;
+import at.nopro.phasmo.game.RoomManager;
 import net.minestom.server.collision.BoundingBox;
 import net.minestom.server.entity.EntityType;
 import net.minestom.server.entity.ai.EntityAIGroup;
@@ -81,6 +80,29 @@ public class BaseGhost extends PhasmoEntity {
         gameContext.getEventNode().addListener(DOTSEvent.class, (event) -> {
             if (event.getPoint().distanceSquared(getPosition()) < 2) {
                 showWhenInDOTS();
+            }
+        });
+    }
+
+    protected void activateUV() {
+        //TODO
+    }
+
+    protected void activateBookWriting() {
+        //TODO
+    }
+
+    protected void activateGhostOrbs() {
+        //TODO
+    }
+
+    protected void activateSpiritBox() {
+        gameContext.getEventNode().addListener(SpiritBoxQuestionEvent.class, (event) -> {
+            RoomManager.Room playerRoom = gameContext.getRoomManager().getRoom(event.player().getPosition());
+            RoomManager.Room ghostRoom = getRoom();
+
+            if (ghostRoom.equals(playerRoom)) {
+                gameContext.getEventNode().call(new SpiritBoxAnswerEvent(gameContext));
             }
         });
     }

@@ -27,7 +27,7 @@ public class StartHuntGoal extends GoalSelector {
 
         ghost.getGameContext().getEventNode().addListener(PlayerDieEvent.class, e -> {
             if (!e.isNowAlive()) {
-                lastDeadPlayer = e.getPlayer();
+                lastDeadPlayer = e.player();
             }
         });
     }

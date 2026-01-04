@@ -12,7 +12,7 @@ public class StartHuntEvent implements PhasmoEvent, CancellableEvent {
     }
 
     @Override
-    public GameContext getGameContext() {
+    public GameContext gameContext() {
         return gameContext;
     }
 

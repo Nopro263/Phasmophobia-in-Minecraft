@@ -19,5 +19,6 @@ public class TestGhost extends BaseGhost {
         activateEMF5();
         activateFreezing();
         activateDOTS();
+        activateSpiritBox();
     }
 }

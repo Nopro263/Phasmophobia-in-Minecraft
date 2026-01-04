@@ -23,6 +23,7 @@ import net.minestom.server.event.entity.EntityTeleportEvent;
 import net.minestom.server.event.instance.InstanceTickEvent;
 import net.minestom.server.event.player.PlayerBlockInteractEvent;
 import net.minestom.server.event.player.PlayerChangeHeldSlotEvent;
+import net.minestom.server.event.player.PlayerChatEvent;
 import net.minestom.server.event.player.PlayerMoveEvent;
 import net.minestom.server.event.trait.EntityEvent;
 import net.minestom.server.instance.Instance;
@@ -112,6 +113,8 @@ public class GameContext {
         listenToGlobalEvent(EmfEvent.class);
         listenToGlobalEvent(TemperatureEvent.class);
         listenToGlobalEvent(InstanceTickEvent.class);
+        listenToGlobalEvent(PlayerChatEvent.class);
+        listenToGlobalEvent(SpiritBoxAnswerEvent.class);
 
         listenToEntityAttackEvent(EntityAttackEvent.class);
         listenToEntityEvent(EntityTeleportEvent.class);
@@ -150,7 +153,7 @@ public class GameContext {
                     equipment.handle(event, player, ref);
                 }
 
-                ref = ItemTracker.track(player, -1);
+                ref = ItemTracker.track(player, ItemTracker.OFFHAND);
 
                 equipment = EquipmentManager.getEquipment(ref.get());
                 if (equipment != null) {
@@ -197,7 +200,7 @@ public class GameContext {
             if (event.getEntity() instanceof Player player) {
                 ref = ItemTracker.track(player, player.getHeldSlot());
 
-                ItemReference ref2 = ItemTracker.track(player, 45);
+                ItemReference ref2 = ItemTracker.track(player, ItemTracker.OFFHAND);
                 Equipment equipment2 = EquipmentManager.getEquipment(ref2.get());
                 if (equipment2 != null) {
                     equipment2.handle(event, event.getEntity(), ref2);

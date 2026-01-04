@@ -39,7 +39,7 @@ import java.util.concurrent.CompletableFuture;
 import static at.nopro.phasmo.Configuration.config;
 
 public class Main {
-    public static void main(String[] args) throws IOException {
+    static void main(String[] args) throws IOException {
         Configuration.parseOrCreate();
 
         VirtualClient virtualClient = new VirtualClient(new File(config.camera.headlessmcPath));
@@ -85,6 +85,7 @@ public class Main {
         EquipmentManager.register(new Thermometer());
         EquipmentManager.register(new Flashlight());
         EquipmentManager.register(new DOTS_Projector());
+        EquipmentManager.register(new SpiritBox());
 
         if (config.devMode) {
             MinecraftServer.getCommandManager().register(new Test());
