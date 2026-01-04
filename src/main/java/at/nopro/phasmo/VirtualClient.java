@@ -35,7 +35,7 @@ public class VirtualClient {
     }
 
     private void startMinecraftClient(File cwd) throws IOException {
-        ProcessBuilder processBuilder = new ProcessBuilder("/usr/bin/bash", "-c", "./headlessmc-launcher --command launch fabric:1.21.10").directory(cwd);
+        ProcessBuilder processBuilder = new ProcessBuilder("/usr/bin/bash", "-c", "./headlessmc-launcher --command launch fabric:1.21.11").directory(cwd);
         processBuilder.environment().put("DISPLAY", ":" + screenId);
         processBuilder.environment().put("CONNECT_PORT", config.mcServer.port + "");
         processBuilder.redirectOutput(ProcessBuilder.Redirect.INHERIT);
