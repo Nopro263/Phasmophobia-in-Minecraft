@@ -86,6 +86,7 @@ public class Main {
         EquipmentManager.register(new Flashlight());
         EquipmentManager.register(new DOTS_Projector());
         EquipmentManager.register(new SpiritBox());
+        EquipmentManager.register(new Crucifix());
 
         if (config.devMode) {
             MinecraftServer.getCommandManager().register(new Test());
