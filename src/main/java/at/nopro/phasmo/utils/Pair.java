@@ -1,4 +1,4 @@
-package at.nopro.old_phasmo;
+package at.nopro.phasmo.utils;
 
 // https://stackoverflow.com/a/521235
 public record Pair<L, R>(L left, R right) {
@@ -15,9 +15,9 @@ public record Pair<L, R>(L left, R right) {
 
     @Override
     public boolean equals(Object o) {
-        if (!( o instanceof Pair pairo )) return false;
-        return this.left.equals(pairo.left()) &&
-                this.right.equals(pairo.right());
+        if (!( o instanceof Pair(Object left1, Object right1) )) return false;
+        return this.left.equals(left1) &&
+                this.right.equals(right1);
     }
 
 }

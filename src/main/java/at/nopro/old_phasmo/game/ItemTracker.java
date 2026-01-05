@@ -1,8 +1,8 @@
 package at.nopro.old_phasmo.game;
 
-import at.nopro.old_phasmo.Pair;
 import at.nopro.old_phasmo.entity.ItemEntity;
 import at.nopro.old_phasmo.event.*;
+import at.nopro.phasmo.utils.Pair;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.entity.Entity;
 import net.minestom.server.entity.Player;
