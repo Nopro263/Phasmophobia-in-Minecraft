@@ -104,6 +104,7 @@ public class BaseGhost extends PhasmoEntity {
                     ItemReference ref = ItemTracker.track(item);
                     Equipment equipment = EquipmentManager.getEquipment(ref.get());
                     if (equipment instanceof Ghost_Book book) {
+                        if (!book.canWrite(ref)) continue;
                         book.write(ref);
                     }
                 }

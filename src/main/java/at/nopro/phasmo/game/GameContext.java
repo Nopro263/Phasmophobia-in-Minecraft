@@ -124,6 +124,7 @@ public class GameContext {
         listenToEntityEvent(PlayerChangeHeldSlotEvent.class);
         listenToEntityEvent(AfterDropEvent.class);
         listenToEntityEvent(AfterPickupEvent.class);
+        listenToEntityEvent(BeforePickupEvent.class);
 
         this.entity = new TestGhost(this);
         this.entity.setInstance(instance, new Pos(-8, -42, 3));

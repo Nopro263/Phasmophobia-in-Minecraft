@@ -2,10 +2,7 @@ package at.nopro.phasmo.game;
 
 import at.nopro.phasmo.Pair;
 import at.nopro.phasmo.entity.ItemEntity;
-import at.nopro.phasmo.event.AfterDropEvent;
-import at.nopro.phasmo.event.AfterPickupEvent;
-import at.nopro.phasmo.event.PlaceEquipmentEvent;
-import at.nopro.phasmo.event.PlayerDieEvent;
+import at.nopro.phasmo.event.*;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.entity.Entity;
 import net.minestom.server.entity.Player;
@@ -113,8 +110,7 @@ public class ItemTracker {
         final Player player = event.getPlayer();
 
         int mainHandSlot = player.getHeldSlot();
-        int offHandSlot = 45;
-        swapInInventory(player, mainHandSlot, offHandSlot);
+        swapInInventory(player, mainHandSlot, OFFHAND);
     }
 
     private static void swapInInventory(Player player, int slot1, int slot2) {
@@ -148,11 +144,17 @@ public class ItemTracker {
         Entity vehicle = entity.getVehicle();
         if (vehicle != null) {
             if (vehicle instanceof ItemEntity itemEntity) {
-                ItemStack itemStack = itemEntity.getItem();
                 final Player player = event.getPlayer();
                 int slot = player.getHeldSlot();
 
                 if (!player.getInventory().getItemStack(slot).isAir()) return;
+                GameContext gameContext = GameManager.getGame(event.getInstance());
+
+                BeforePickupEvent pickupEvent = new BeforePickupEvent(itemEntity, gameContext, player);
+                gameContext.getEventNode().call(pickupEvent);
+                if (pickupEvent.isCancelled()) return;
+
+                ItemStack itemStack = itemEntity.getItem();
 
                 if (itemMap.containsKey(itemEntity)) {
                     ItemReference entityTracker = itemMap.remove(itemEntity);
@@ -164,7 +166,7 @@ public class ItemTracker {
 
                 player.getInventory().setItemStack(slot, itemStack);
 
-                GameContext gameContext = GameManager.getGame(event.getInstance());
+
                 gameContext.getEventNode().call(new AfterPickupEvent(itemEntity, gameContext, player));
 
                 vehicle.remove();
