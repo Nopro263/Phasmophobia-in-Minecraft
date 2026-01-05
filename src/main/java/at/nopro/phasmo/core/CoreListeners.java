@@ -1,10 +1,14 @@
 package at.nopro.phasmo.core;
 
+import at.nopro.phasmo.Main;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.event.server.ServerListPingEvent;
 import net.minestom.server.ping.Status;
+
+import java.io.IOException;
+import java.util.Objects;
 
 public final class CoreListeners {
     private CoreListeners() {
@@ -31,6 +35,10 @@ public final class CoreListeners {
     }
 
     private static byte[] getIcon() {
-        return null; //TODO find a suitable icon
+        try {
+            return Objects.requireNonNull(Main.class.getResourceAsStream("icon.png")).readAllBytes();
+        } catch (IOException e) {
+            throw new RuntimeException("Server icon reading error", e);
+        }
     }
 }
