@@ -94,7 +94,7 @@ public class PhasmoInstance extends InstanceContainer {
             if (mainhandEquipment instanceof Flashlight) {
                 return player.getPosition();
             }
-            ref = ItemTracker.track(player, -1);
+            ref = ItemTracker.track(player, ItemTracker.OFFHAND);
             Equipment offhandEquipment = EquipmentManager.getEquipment(ref.get());
             if (offhandEquipment instanceof Flashlight) {
                 return player.getPosition();

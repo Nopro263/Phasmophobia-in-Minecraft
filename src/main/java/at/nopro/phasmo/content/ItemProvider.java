@@ -7,6 +7,15 @@ import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.Material;
 
 public class ItemProvider {
+    public static ItemStack getCrucifix(boolean isBurned) {
+        return ItemStack.builder(Material.WOODEN_PICKAXE)
+                .itemModel(isBurned ? "minecraft:netherite_pickaxe" : "minecraft:iron_pickaxe")
+                .set(DataComponents.MAX_STACK_SIZE, 1)
+                .set(EquipmentManager.EQUIPMENT_TAG, EquipmentManager.get(Crucifix.class))
+                .customName(Component.text("Crucifix"))
+                .build();
+    }
+
     public static ItemStack getSpiritBox(boolean hasResponse) {
         return ItemStack.builder(Material.HEAVY_CORE)
                 .itemModel("minecraft:heavy_core")

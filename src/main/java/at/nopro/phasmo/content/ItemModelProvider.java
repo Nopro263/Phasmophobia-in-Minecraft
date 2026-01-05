@@ -51,6 +51,20 @@ public class ItemModelProvider {
                     Vec.ONE,
                     new float[]{ 0, 0, 0, 1 }
             ),
+            "minecraft:iron_pickaxe", new ItemModel(
+                    new BoundingBox(0.5, 0.1875, 0.5),
+                    new Pos(-0.350, 0.250, -0.120),
+                    new float[]{ 0, 0, 0, 1 },
+                    Vec.ONE,
+                    new float[]{ 0, 0, 0, 1 }
+            ),
+            "minecraft:netherite_pickaxe", new ItemModel(
+                    new BoundingBox(0, 0, 0),
+                    new Pos(-0.350, 0.250, -0.120),
+                    new float[]{ 0, 0, 0, 1 },
+                    Vec.ONE,
+                    new float[]{ 0, 0, 0, 1 }
+            ),
             "minecraft:oxidized_copper_lantern", new ItemModel(
                     new BoundingBox(0.5, 0.1875, 0.5),
                     new Pos(-0.350, 0.250, -0.120),
