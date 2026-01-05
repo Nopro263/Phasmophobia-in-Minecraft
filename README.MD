@@ -1,4 +1,4 @@
-# Phasmophobia in Minecraft
+![](./images/title.png "Phasmophobia in Minecraft")
 
 ## About this Project
 

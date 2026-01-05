@@ -115,6 +115,7 @@ public class GameContext {
         listenToGlobalEvent(InstanceTickEvent.class);
         listenToGlobalEvent(PlayerChatEvent.class);
         listenToGlobalEvent(SpiritBoxAnswerEvent.class);
+        listenToGlobalEvent(StartHuntEvent.class);
 
         listenToEntityAttackEvent(EntityAttackEvent.class);
         listenToEntityEvent(EntityTeleportEvent.class);

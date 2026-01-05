@@ -25,7 +25,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ItemTracker {
-    private static final Map<Pair<Player, Integer>, ItemReference> playerSlotMap = new HashMap<>();
+    private static final Map<Pair<Player, Integer>, ItemReference> playerSlotMap = new HashMap<>(); //TODO remove when player quits, etc
     private static final Map<Entity, ItemReference> itemMap = new HashMap<>();
 
     public static final int OFFHAND = 45;
