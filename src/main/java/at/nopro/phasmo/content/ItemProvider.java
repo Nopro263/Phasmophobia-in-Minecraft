@@ -74,6 +74,15 @@ public class ItemProvider {
                 .itemModel("phasmo:book_open")
                 .set(DataComponents.MAX_STACK_SIZE, 1)
                 .set(EquipmentManager.EQUIPMENT_TAG, EquipmentManager.get(Ghost_Book.class))
+                .customName(Component.text("open ghost book"))
+                .build();
+    }
+
+    public static ItemStack getWrittenBook() {
+        return ItemStack.builder(Material.STICK)
+                .itemModel("phasmo:book_written")
+                .set(DataComponents.MAX_STACK_SIZE, 1)
+                .set(EquipmentManager.EQUIPMENT_TAG, EquipmentManager.get(Ghost_Book.class))
                 .customName(Component.text("written ghost book"))
                 .build();
     }

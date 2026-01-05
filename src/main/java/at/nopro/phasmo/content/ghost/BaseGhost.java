@@ -1,10 +1,17 @@
 package at.nopro.phasmo.content.ghost;
 
+import at.nopro.phasmo.content.equipment.Equipment;
+import at.nopro.phasmo.content.equipment.EquipmentManager;
+import at.nopro.phasmo.content.equipment.Ghost_Book;
+import at.nopro.phasmo.entity.ItemEntity;
 import at.nopro.phasmo.entity.PhasmoEntity;
 import at.nopro.phasmo.event.*;
 import at.nopro.phasmo.game.GameContext;
+import at.nopro.phasmo.game.ItemReference;
+import at.nopro.phasmo.game.ItemTracker;
 import at.nopro.phasmo.game.RoomManager;
 import net.minestom.server.collision.BoundingBox;
+import net.minestom.server.entity.Entity;
 import net.minestom.server.entity.EntityType;
 import net.minestom.server.entity.ai.EntityAIGroup;
 import net.minestom.server.entity.ai.GoalSelector;
@@ -89,7 +96,21 @@ public class BaseGhost extends PhasmoEntity {
     }
 
     protected void activateBookWriting() {
-        //TODO
+        gameContext.getScheduler().run(this.hashCode() + "GhostWriting", () -> {
+            if (getRoom() == null) return TaskSchedule.seconds(3);
+
+            for (Entity entity : getRoom().getEntities()) {
+                if (entity instanceof ItemEntity item) {
+                    ItemReference ref = ItemTracker.track(item);
+                    Equipment equipment = EquipmentManager.getEquipment(ref.get());
+                    if (equipment instanceof Ghost_Book book) {
+                        book.write(ref);
+                    }
+                }
+            }
+
+            return TaskSchedule.seconds(3);
+        });
     }
 
     protected void activateGhostOrbs() {

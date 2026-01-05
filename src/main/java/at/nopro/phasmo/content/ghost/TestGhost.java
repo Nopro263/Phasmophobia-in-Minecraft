@@ -20,5 +20,6 @@ public class TestGhost extends BaseGhost {
         activateFreezing();
         activateDOTS();
         activateSpiritBox();
+        activateBookWriting();
     }
 }

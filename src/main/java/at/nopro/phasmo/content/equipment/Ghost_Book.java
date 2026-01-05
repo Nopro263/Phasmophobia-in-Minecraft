@@ -10,7 +10,7 @@ import net.minestom.server.item.ItemStack;
 
 import java.util.Objects;
 
-public class Ghost_Book implements Equipment {
+public class Ghost_Book implements Equipment { //TODO make book placeable, book closes when picked up
     @Override
     public void handle(Event event, Entity entity, ItemReference r) {
         if (event instanceof EntityAttackEvent attackEvent) {
@@ -22,6 +22,13 @@ public class Ghost_Book implements Equipment {
                 }
             }
         }
+    }
+
+    public void write(ItemReference r) {
+        if (Objects.equals(r.get().get(DataComponents.ITEM_MODEL), "phasmo:book_written")) {
+            return;
+        }
+        r.set(ItemProvider.getWrittenBook());
     }
 
     @Override

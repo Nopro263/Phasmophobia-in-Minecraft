@@ -150,6 +150,10 @@ public class RoomManager {
             return gameContext.getPlayerManager().getAlivePlayers().stream().filter((p) -> contains(p.getPosition())).toList();
         }
 
+        public List<Entity> getEntities() {
+            return gameContext.getInstance().getEntities().stream().filter((p) -> contains(p.getPosition())).toList();
+        }
+
         public boolean contains(Point point) {
             for (RoomPart bb : boundingBoxes) {
                 if (bb.contains(point)) {
