@@ -1,9 +1,11 @@
 package at.nopro.phasmo.core;
 
 import at.nopro.phasmo.Main;
+import at.nopro.phasmo.gameplay.lobby.LobbyInstance;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
 import net.minestom.server.MinecraftServer;
+import net.minestom.server.event.player.AsyncPlayerConfigurationEvent;
 import net.minestom.server.event.server.ServerListPingEvent;
 import net.minestom.server.ping.Status;
 
@@ -16,6 +18,7 @@ public final class CoreListeners {
 
     public static void init() {
         MinecraftServer.getGlobalEventHandler().addListener(ServerListPingEvent.class, CoreListeners::onPing);
+        MinecraftServer.getGlobalEventHandler().addListener(AsyncPlayerConfigurationEvent.class, CoreListeners::onConfiguration);
     }
 
     private static void onPing(ServerListPingEvent serverListPingEvent) {
@@ -40,5 +43,12 @@ public final class CoreListeners {
         } catch (IOException e) {
             throw new RuntimeException("Server icon reading error", e);
         }
+    }
+
+
+    private static void onConfiguration(AsyncPlayerConfigurationEvent playerConfigurationEvent) {
+        playerConfigurationEvent.setClearChat(true);
+        playerConfigurationEvent.setHardcore(false);
+        playerConfigurationEvent.setSpawningInstance(LobbyInstance.INSTANCE);
     }
 }
