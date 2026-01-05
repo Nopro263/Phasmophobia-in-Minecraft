@@ -1,9 +1,9 @@
 package at.nopro.phasmo;
 
 import at.nopro.phasmo.core.CoreListeners;
-import at.nopro.phasmo.core.DimensionTypes;
 import at.nopro.phasmo.core.auth.AuthHandler;
 import at.nopro.phasmo.core.config.Configuration;
+import at.nopro.phasmo.core.world.DimensionTypes;
 import at.nopro.phasmo.gameplay.Gameplay;
 import net.minestom.server.Auth;
 import net.minestom.server.MinecraftServer;

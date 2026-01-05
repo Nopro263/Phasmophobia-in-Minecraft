@@ -1,4 +1,4 @@
-package at.nopro.phasmo.core;
+package at.nopro.phasmo.core.world;
 
 import net.kyori.adventure.key.Key;
 import net.minestom.server.MinecraftServer;

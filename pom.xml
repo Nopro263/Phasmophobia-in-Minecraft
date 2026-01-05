@@ -41,6 +41,11 @@
             <version>2026.01.01-1.21.11</version>
         </dependency>
         <dependency>
+            <groupId>dev.hollowcube</groupId>
+            <artifactId>polar</artifactId>
+            <version>1.15.0</version>
+        </dependency>
+        <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
             <version>2.0.17</version>

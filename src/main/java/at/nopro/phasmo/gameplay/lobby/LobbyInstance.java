@@ -1,20 +1,20 @@
 package at.nopro.phasmo.gameplay.lobby;
 
-import at.nopro.phasmo.core.DimensionTypes;
-import net.minestom.server.MinecraftServer;
-import net.minestom.server.instance.InstanceContainer;
+import at.nopro.phasmo.core.world.BaseInstance;
+import at.nopro.phasmo.core.world.DimensionTypes;
+import at.nopro.phasmo.core.world.WorldLoader;
 
-import java.util.UUID;
+import java.io.IOException;
 
-public class LobbyInstance extends InstanceContainer {
+public class LobbyInstance extends BaseInstance {
     public static LobbyInstance INSTANCE;
 
     private LobbyInstance() {
-        super(UUID.randomUUID(), DimensionTypes.getKeyFor(DimensionTypes.LOBBY));
-        MinecraftServer.getInstanceManager().registerInstance(this);
+        super(DimensionTypes.LOBBY);
     }
 
-    public static void init() {
+    public static void init() throws IOException {
         INSTANCE = new LobbyInstance();
+        WorldLoader.loadLobby();
     }
 }
