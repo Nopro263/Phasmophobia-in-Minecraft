@@ -26,7 +26,7 @@ Read more [here](https://store.steampowered.com/app/739630/Phasmophobia/)
 
 you can try the server here:
 `phasmo d​ot uns​er [d​​​​​o​t] dns​64 [​d​o​​t] de`
-version `1.21.10`
+version `1.21.11`
 
 ## Running the Server
 
@@ -101,4 +101,4 @@ java -jar`./PhasmoInMc.jar
 > [!NOTE]  
 > currently you have to use your own resource pack (if you want one), in the future I will include it in the jar
 
-the server will now listen on the port specified in `config.yml` and you can join on version `1.21.10`
+the server will now listen on the port specified in `config.yml` and you can join on version `1.21.11`

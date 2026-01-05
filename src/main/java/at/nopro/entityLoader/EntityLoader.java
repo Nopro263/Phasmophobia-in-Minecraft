@@ -1,6 +1,6 @@
 package at.nopro.entityLoader;
 
-import at.nopro.phasmo.Reflection;
+import at.nopro.phasmo.utils.Reflection;
 import net.kyori.adventure.nbt.BinaryTag;
 import net.kyori.adventure.nbt.BinaryTagTypes;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
