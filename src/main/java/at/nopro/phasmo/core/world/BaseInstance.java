@@ -18,7 +18,11 @@ public class BaseInstance extends InstanceContainer {
     private WorldMeta worldMeta;
 
     public BaseInstance(DimensionType dimensionType) {
-        super(UUID.randomUUID(), DimensionTypes.getKeyFor(dimensionType));
+        this(UUID.randomUUID(), dimensionType);
+    }
+
+    public BaseInstance(UUID uuid, DimensionType dimensionType) {
+        super(uuid, DimensionTypes.getKeyFor(dimensionType));
         MinecraftServer.getInstanceManager().registerInstance(this);
 
         setGenerator((u) -> {
@@ -56,13 +60,13 @@ public class BaseInstance extends InstanceContainer {
 
     @Override
     public @NonNull CompletableFuture<Void> saveInstance() {
-        //if (isReadonly()) return CompletableFuture.completedFuture(null);
+        if (isReadonly()) return CompletableFuture.completedFuture(null);
         return super.saveInstance();
     }
 
     @Override
     public @NonNull CompletableFuture<Void> saveChunksToStorage() {
-        //if (isReadonly()) return CompletableFuture.completedFuture(null);
+        if (isReadonly()) return CompletableFuture.completedFuture(null);
         return super.saveChunksToStorage();
     }
 

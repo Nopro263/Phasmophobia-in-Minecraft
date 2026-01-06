@@ -9,11 +9,15 @@ import net.minestom.server.MinecraftServer;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+import static at.nopro.phasmo.core.config.Configuration.config;
+
 public final class Editor {
     private Editor() {
     }
 
     public static void init() {
+        if (!config.devMode) return;
+
         MinecraftServer.getCommandManager().register(new CreateMapCommand());
         MinecraftServer.getCommandManager().register(new SaveMapCommand());
         MinecraftServer.getCommandManager().register(new LoadMapCommand());

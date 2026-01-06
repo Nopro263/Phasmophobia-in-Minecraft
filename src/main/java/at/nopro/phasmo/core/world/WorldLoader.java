@@ -6,9 +6,12 @@ import net.hollowcube.polar.PolarWorld;
 import net.hollowcube.polar.PolarWriter;
 import net.minestom.server.world.DimensionType;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.List;
 
 public class WorldLoader {
     public static final String PREFIX = "worlds";
@@ -33,5 +36,10 @@ public class WorldLoader {
         instance.setChunkLoader(loader);
         instance.onLoad();
         return instance;
+    }
+
+    public static List<String> getWorldNames() {
+        File file = new File(PREFIX);
+        return Arrays.stream(file.list()).filter(s -> s.endsWith(".polar")).map(s -> s.substring(0, s.length() - 6)).toList();
     }
 }

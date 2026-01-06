@@ -5,6 +5,7 @@ import at.nopro.phasmo.core.world.DimensionTypes;
 import at.nopro.phasmo.core.world.WorldLoader;
 import at.nopro.phasmo.core.world.WorldMeta;
 import net.minestom.server.coordinate.Pos;
+import net.minestom.server.entity.GameMode;
 import net.minestom.server.event.player.PlayerSpawnEvent;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.network.NetworkBuffer;
@@ -26,6 +27,7 @@ public class LobbyInstance extends BaseInstance {
 
     private void onPlayerSpawn(PlayerSpawnEvent playerSpawnEvent) {
         playerSpawnEvent.getPlayer().teleport(getWorldMeta().spawnPos);
+        playerSpawnEvent.getPlayer().setGameMode(GameMode.SURVIVAL);
     }
 
     @Override

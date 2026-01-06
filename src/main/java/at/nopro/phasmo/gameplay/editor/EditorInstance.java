@@ -16,6 +16,7 @@ import net.minestom.server.entity.Player;
 import net.minestom.server.entity.metadata.other.ArmorStandMeta;
 import net.minestom.server.event.entity.EntityAttackEvent;
 import net.minestom.server.event.player.PlayerBlockInteractEvent;
+import net.minestom.server.event.player.PlayerDisconnectEvent;
 import net.minestom.server.event.player.PlayerPickBlockEvent;
 import net.minestom.server.event.player.PlayerSpawnEvent;
 import net.minestom.server.instance.LightingChunk;
@@ -37,14 +38,15 @@ public class EditorInstance extends BaseInstance {
     private Entity currentModifyingEntity = null;
     private Editor.MetaEntry currentModifyingEntry = null;
 
-    public EditorInstance(DimensionType dimensionType, WorldMeta meta) {
-        super(dimensionType);
+    public EditorInstance(DimensionType dimensionType, WorldMeta meta, String mapName) {
+        super(Utils.uuidFromObject(mapName), dimensionType);
         setReadonly(false);
         setWorldMeta(meta);
 
         setChunkSupplier(LightingChunk::new);
 
         eventNode().addListener(PlayerSpawnEvent.class, this::onPlayerSpawn);
+        eventNode().addListener(PlayerDisconnectEvent.class, this::onDisconnect);
         eventNode().addListener(PlayerPickBlockEvent.class, this::onBlockPick);
         eventNode().addListener(PlayerBlockInteractEvent.class, this::onBlockInteract);
 
@@ -55,6 +57,10 @@ public class EditorInstance extends BaseInstance {
                     f.getType()
             ));
         }
+    }
+
+    private void onDisconnect(PlayerDisconnectEvent disconnectEvent) {
+        scheduleNextTick(_ -> closeIfEmpty());
     }
 
     private void onBlockInteract(PlayerBlockInteractEvent blockInteractEvent) {
