@@ -25,7 +25,7 @@ public class ExitCommand extends Command {
             if (player.getInstance() instanceof EditorInstance editorInstance) {
                 long diff = System.currentTimeMillis() - editorInstance.getLastSaveTime();
 
-                double seconds = diff / 1e6;
+                double seconds = diff / 1e3;
                 if (seconds > 10) {
                     player.sendMessage(Component.text("Last saved " + seconds + "s ago").color(TextColor.color(255, 21, 21)));
                     player.sendMessage(Component.text("do you wish to continue? ").color(TextColor.color(155, 155, 155)));
@@ -39,7 +39,8 @@ public class ExitCommand extends Command {
                     return;
                 }
                 player.sendMessage("Exiting to lobby");
-                player.setInstance(LobbyInstance.INSTANCE);
+                player.setInstance(LobbyInstance.INSTANCE).join();
+                editorInstance.closeIfEmpty();
             } else {
                 player.sendMessage("you must be in editor-mode to use this");
             }
@@ -53,7 +54,8 @@ public class ExitCommand extends Command {
 
             if (player.getInstance() instanceof EditorInstance editorInstance) {
                 player.sendMessage("Exiting to lobby");
-                player.setInstance(LobbyInstance.INSTANCE);
+                player.setInstance(LobbyInstance.INSTANCE).join();
+                editorInstance.closeIfEmpty();
             } else {
                 player.sendMessage("you must be in editor-mode to use this");
             }

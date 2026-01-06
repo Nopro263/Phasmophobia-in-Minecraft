@@ -17,7 +17,7 @@ public class SaveMapCommand extends Command {
             }
 
             if (player.getInstance() instanceof EditorInstance editorInstance) {
-                CompletableFuture<Void> task = editorInstance.saveChunksToStorage();
+                CompletableFuture<Void> task = editorInstance.save();
                 player.sendMessage("saving instance");
                 task.join();
                 player.sendMessage("saved!");

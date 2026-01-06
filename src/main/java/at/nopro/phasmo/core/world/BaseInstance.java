@@ -15,6 +15,7 @@ import java.util.concurrent.CompletableFuture;
 
 public class BaseInstance extends InstanceContainer {
     private boolean readonly;
+    private WorldMeta worldMeta;
 
     public BaseInstance(DimensionType dimensionType) {
         super(UUID.randomUUID(), DimensionTypes.getKeyFor(dimensionType));
@@ -46,9 +47,33 @@ public class BaseInstance extends InstanceContainer {
         return super.breakBlock(player, blockPosition, blockFace, doBlockUpdates);
     }
 
+    public CompletableFuture<Void> save() {
+        return CompletableFuture.allOf(
+                saveChunksToStorage(),
+                saveInstance()
+        );
+    }
+
+    @Override
+    public @NonNull CompletableFuture<Void> saveInstance() {
+        //if (isReadonly()) return CompletableFuture.completedFuture(null);
+        return super.saveInstance();
+    }
+
     @Override
     public @NonNull CompletableFuture<Void> saveChunksToStorage() {
-        if (isReadonly()) return CompletableFuture.completedFuture(null);
+        //if (isReadonly()) return CompletableFuture.completedFuture(null);
         return super.saveChunksToStorage();
+    }
+
+    public WorldMeta getWorldMeta() {
+        return worldMeta;
+    }
+
+    protected void setWorldMeta(WorldMeta worldMeta) {
+        this.worldMeta = worldMeta;
+    }
+
+    public void onLoad() {
     }
 }

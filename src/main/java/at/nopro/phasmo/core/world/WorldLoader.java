@@ -28,7 +28,10 @@ public class WorldLoader {
         PolarWorld world = PolarReader.read(Files.readAllBytes(path));
 
         PolarLoader loader = new PolarLoader(path, world);
+        loader.setWorldAccess(instance.getWorldMeta());
         loader.loadInstance(instance);
+        instance.setChunkLoader(loader);
+        instance.onLoad();
         return instance;
     }
 }
