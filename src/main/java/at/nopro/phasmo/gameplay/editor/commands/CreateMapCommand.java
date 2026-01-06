@@ -5,6 +5,7 @@ import net.kyori.adventure.key.Key;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.command.builder.Command;
 import net.minestom.server.command.builder.arguments.ArgumentType;
+import net.minestom.server.entity.Player;
 import net.minestom.server.registry.RegistryKey;
 
 import java.io.IOException;
@@ -22,11 +23,14 @@ public class CreateMapCommand extends Command {
         });
 
         addSyntax(( (sender, context) -> {
+            if (!( sender instanceof Player player )) return;
             try {
                 WorldLoader.createWorld(context.get(name), context.get(type));
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
+
+            MinecraftServer.getCommandManager().execute(player, "loadMap " + context.get(name));
         } ), name, type);
     }
 }
