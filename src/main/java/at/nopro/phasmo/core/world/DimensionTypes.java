@@ -66,10 +66,10 @@ public final class DimensionTypes {
         );
     }
 
-    public static RegistryKey<DimensionType> getDimensionTypeKey(int minY, int maxY) {
+    public static DimensionType getDimensionTypeFor(int minY, int maxY) {
         for (DimensionType dimensionType : VALUES) {
             if (dimensionType.minY() == minY && dimensionType.maxY() == maxY) {
-                return getKeyFor(dimensionType);
+                return dimensionType;
             }
         }
         return null;
