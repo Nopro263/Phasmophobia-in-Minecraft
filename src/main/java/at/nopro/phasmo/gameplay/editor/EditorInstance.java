@@ -9,18 +9,14 @@ import net.kyori.adventure.text.format.TextColor;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.component.DataComponents;
 import net.minestom.server.coordinate.Pos;
-import net.minestom.server.entity.Entity;
-import net.minestom.server.entity.EntityType;
-import net.minestom.server.entity.GameMode;
-import net.minestom.server.entity.Player;
+import net.minestom.server.entity.*;
 import net.minestom.server.entity.metadata.other.ArmorStandMeta;
 import net.minestom.server.event.entity.EntityAttackEvent;
-import net.minestom.server.event.player.PlayerBlockInteractEvent;
-import net.minestom.server.event.player.PlayerDisconnectEvent;
-import net.minestom.server.event.player.PlayerPickBlockEvent;
-import net.minestom.server.event.player.PlayerSpawnEvent;
+import net.minestom.server.event.player.*;
 import net.minestom.server.instance.LightingChunk;
 import net.minestom.server.item.ItemStack;
+import net.minestom.server.item.Material;
+import net.minestom.server.network.packet.server.play.EntityStatusPacket;
 import net.minestom.server.world.DimensionType;
 import org.jspecify.annotations.NonNull;
 
@@ -49,6 +45,7 @@ public class EditorInstance extends BaseInstance {
         eventNode().addListener(PlayerDisconnectEvent.class, this::onDisconnect);
         eventNode().addListener(PlayerPickBlockEvent.class, this::onBlockPick);
         eventNode().addListener(PlayerBlockInteractEvent.class, this::onBlockInteract);
+        eventNode().addListener(PlayerGameModeRequestEvent.class, this::onGameModeRequest);
 
         for (Field f : Reflection.getAllDeclared(meta)) {
             metaEntryMap.put(f.getName(), new Editor.MetaEntry(
@@ -63,6 +60,15 @@ public class EditorInstance extends BaseInstance {
         scheduleNextTick(_ -> closeIfEmpty());
     }
 
+    private void onPlayerSpawn(PlayerSpawnEvent playerSpawnEvent) {
+        playerSpawnEvent.getPlayer().setGameMode(GameMode.CREATIVE);
+        playerSpawnEvent.getPlayer().teleport(new Pos(0, 17, 0));
+        playerSpawnEvent.getPlayer().sendPacket(new EntityStatusPacket(
+                playerSpawnEvent.getPlayer().getEntityId(),
+                (byte) EntityStatuses.Player.PERMISSION_LEVEL_4
+        ));
+    }
+
     private void onBlockInteract(PlayerBlockInteractEvent blockInteractEvent) {
         ItemStack itemStack = blockInteractEvent.getPlayer().getItemInHand(blockInteractEvent.getHand());
         if (itemStack.isAir() && currentModifyingEntity != null) {
@@ -70,15 +76,20 @@ public class EditorInstance extends BaseInstance {
             currentModifyingEntry.setter().accept(pos);
             showAllMetaValues();
         }
-    }
 
-    private void onPlayerSpawn(PlayerSpawnEvent playerSpawnEvent) {
-        playerSpawnEvent.getPlayer().setGameMode(GameMode.CREATIVE);
-        playerSpawnEvent.getPlayer().teleport(new Pos(0, 17, 0));
+        if (itemStack.material() == Material.DEBUG_STICK) {
+            for (var e : blockInteractEvent.getBlock().properties().entrySet()) {
+                System.out.println(e.getKey() + ":" + e.getValue());
+            }
+        }
     }
 
     private void onBlockPick(PlayerPickBlockEvent pickBlockEvent) {
         pickBlockEvent.getPlayer().getInventory().addItemStack(ItemStack.of(pickBlockEvent.getBlock().registry().material()));
+    }
+
+    private void onGameModeRequest(PlayerGameModeRequestEvent gameModeRequestEvent) {
+        gameModeRequestEvent.getPlayer().setGameMode(gameModeRequestEvent.getRequestedGameMode());
     }
 
     public void showAllMetaValues() {

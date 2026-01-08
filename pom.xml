@@ -38,7 +38,7 @@
         <dependency>
             <groupId>net.minestom</groupId>
             <artifactId>minestom</artifactId>
-            <version>2026.01.01-1.21.11</version>
+            <version>2026.01.08-1.21.11</version>
         </dependency>
         <dependency>
             <groupId>dev.hollowcube</groupId>
