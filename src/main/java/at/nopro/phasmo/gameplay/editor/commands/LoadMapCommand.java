@@ -4,6 +4,7 @@ import at.nopro.phasmo.core.world.DimensionTypes;
 import at.nopro.phasmo.core.world.WorldLoader;
 import at.nopro.phasmo.core.world.WorldMeta;
 import at.nopro.phasmo.gameplay.editor.EditorInstance;
+import at.nopro.phasmo.gameplay.ingame.GameInstance;
 import at.nopro.phasmo.gameplay.lobby.LobbyInstance;
 import at.nopro.phasmo.utils.Utils;
 import net.hollowcube.polar.PolarReader;
@@ -64,7 +65,7 @@ public class LoadMapCommand extends Command {
                         var path = Path.of(WorldLoader.PREFIX, name + ".polar");
                         PolarWorld world = PolarReader.read(Files.readAllBytes(path));
                         dimensionType = DimensionTypes.getDimensionTypeFor(world.minSection() * 16, ( world.maxSection() + 1 ) * 16);
-                        worldMeta = null; //TODO replace once there is a GameplayInstance
+                        worldMeta = new GameInstance.Meta();
                     }
 
                     editorInstance = new EditorInstance(dimensionType, worldMeta, name);

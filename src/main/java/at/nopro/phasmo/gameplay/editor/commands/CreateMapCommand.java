@@ -7,6 +7,7 @@ import net.minestom.server.command.builder.Command;
 import net.minestom.server.command.builder.arguments.ArgumentType;
 import net.minestom.server.entity.Player;
 import net.minestom.server.registry.RegistryKey;
+import net.minestom.server.world.DimensionType;
 
 import java.io.IOException;
 
@@ -17,15 +18,15 @@ public class CreateMapCommand extends Command {
         String[] dimensionNames = MinecraftServer.getDimensionTypeRegistry().keys().stream().map(RegistryKey::name).toArray(String[]::new);
 
         var name = ArgumentType.Word("name");
-        var type = ArgumentType.Word("type").from(dimensionNames).map(s -> {
-            Key key = Key.key(s);
-            return MinecraftServer.getDimensionTypeRegistry().get(key);
-        });
+        var type = ArgumentType.Word("type").from(dimensionNames);
 
         addSyntax(( (sender, context) -> {
             if (!( sender instanceof Player player )) return;
+
+            Key key = Key.key(context.get(type));
+            DimensionType dimensionType = MinecraftServer.getDimensionTypeRegistry().get(key);
             try {
-                WorldLoader.createWorld(context.get(name), context.get(type));
+                WorldLoader.createWorld(context.get(name), dimensionType);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
